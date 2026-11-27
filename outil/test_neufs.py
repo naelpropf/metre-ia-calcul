@@ -67,6 +67,23 @@ if sys.argv[1] == "--page":
     bord_courbe = {}
     # 27/11 DIAGNOSTIC 4 : poteaux dessines en rectangle a trait fin, colles aux murs (compter_poteaux), matiere de la passe
     # principale refaite ici (DERNIERE_MATIERE vient de la derniere variante)
+    # 27/11 DIAGNOSTIC 5 : pourquoi une piece n'est PAS mesuree ? etiquette SUR la matiere (mur, cartouche rempli) ou piece
+    # OUVERTE (aucun trou ne la contient). Matiere de la passe PRINCIPALE refaite ici (DERNIERE_MATIERE = derniere variante).
+    pourquoi_non = {}
+    try:
+        if any(not r.get("a") for r in R):
+            import matiere as _m5
+            from shapely.geometry import Point as _Pt
+            _o = sys.stdout; sys.stdout = open(os.devnull, "w", encoding="utf-8")
+            try: _m5.pieces_par_matiere(metre.normaliser(f), verbeux=False)
+            finally: sys.stdout.close(); sys.stdout = _o
+            if _m5.DERNIERE_MATIERE:
+                MAT5 = _m5.DERNIERE_MATIERE[0]
+                for i, r in enumerate(R):
+                    if not r.get("a"):
+                        pourquoi_non[i] = "sur la matiere" if MAT5.contains(_Pt(r["e"]["x"], r["e"]["y"])) else "piece ouverte"
+    except Exception as ex:
+        pourquoi_non = {"erreur": str(ex)[:80]}
     n_poteaux = None   # INVALIDE (27/11 : sur 3068854 les poteaux sont 4 TRAITS separes, pas des rectangles) -> desactive
     if False:
         import matiere as _m4, pypdfium2 as _pdf
@@ -86,7 +103,8 @@ if sys.argv[1] == "--page":
     det = [{"nom": r["e"].get("nom", ""), "ecrite": r["e"].get("surface_ecrite"), "mesuree": r.get("a"), "sure": bool(r["sure"]),
             "coupee_bord": bool(r["e"].get("coupee_bord")), "bord_cote_m": bord_cote.get(i) if isinstance(bord_cote, dict) else None,
             "aire_portes_m2": aire_portes.get(i) if isinstance(aire_portes, dict) else None,
-            "bord_courbe_m": bord_courbe.get(i) if isinstance(bord_courbe, dict) else None}
+            "bord_courbe_m": bord_courbe.get(i) if isinstance(bord_courbe, dict) else None,
+            "pourquoi_non_mesuree": pourquoi_non.get(i) if isinstance(pourquoi_non, dict) else None}
            for i, r in enumerate(R)]   # detail par piece (pour le livre des pieces, mesure seule)
     json.dump({"page": nom, "pieces": n, "sures": s, "coupees_bord": cb, "secondes": duree, "detail": det,
                "diag_erreur": bord_cote.get("erreur") if isinstance(bord_cote, dict) else None,
