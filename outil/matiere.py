@@ -147,7 +147,11 @@ def fermer_ouvertures(mat, m_pt):
     morceaux_aj = [g for g in getattr(ajout, "geoms", [ajout])
                    if not g.is_empty and 0.005 <= g.area * m_pt * m_pt <= 2 * R_OUVERTURE * 0.6]
     if not morceaux_aj: return mat
-    mat_e = mat.buffer(e, join_style=2)
+    # 27/11 v2 (faux ponts de 548666 entre un mur et un BATTANT dessine) : le contact ne compte que sur les MURS EPAIS
+    # (matiere sans les traits de moins de 5 cm : battants, meubles, cotes) -> un pont relie deux bouts de mur
+    e2 = 0.025 / m_pt
+    epais = mat.buffer(-e2, join_style=2, mitre_limit=5).buffer(e2, join_style=2, mitre_limit=5)
+    mat_e = epais.buffer(e, join_style=2)
     for g in morceaux_aj:
         x0, y0, x1, y1 = g.bounds
         local = shapely.clip_by_rect(mat_e, x0 - 2 * e, y0 - 2 * e, x1 + 2 * e, y1 + 2 * e)
