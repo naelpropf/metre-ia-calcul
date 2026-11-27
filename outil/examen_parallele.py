@@ -26,7 +26,9 @@ if len(sys.argv) > 2:
         i = min(range(n), key=lambda j: (charge[j], j))
         parts[i].append(f); charge[i] += max(durees.get(os.path.splitext(os.path.basename(f))[0][:80], 0), 1)
     pages = parts[k - 1]
-LONGUE = int(os.environ.get("PAGE_LONGUE", "100"))   # s : au-dela, la page calcule ses variantes en parallele (N processus)
+# s : au-dela, la page calcule ses variantes en parallele. ARRETE par defaut (27/11, 4e examen : 188 -> 247 s pour la page la
+# plus longue, CALIGNAC p11 85 -> 218 s : processeurs surcharges et memoire des fusions perdue entre processus)
+LONGUE = int(os.environ.get("PAGE_LONGUE", "1000000000"))
 print("%d pages, %d a la fois, limite %d s par page" % (len(pages), N, TEMPS_MAX), flush=True)
 debut = time.time()
 
