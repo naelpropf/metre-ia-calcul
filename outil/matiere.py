@@ -85,6 +85,8 @@ def _pas_mur(c):
 
 
 DOUBLE_TRAIT = False # murs dessines en deux traits fins paralleles (convention CAO classique ; plan Scanner)
+SANS_COTES = False    # 27/11 (548666 : chaines de cotes = courbes epaisses prises pour des murs) : variante v3 qui retire
+                      # de la matiere les traits/courbes qui PORTENT un chiffre de cote (diag_cotes.ids_objets_de_cote)
 CALCUL_DOUTES = True  # 27/11 : les variantes v3 ne gardent que la surface -> elles sautent la mesure « part inventee » (34 s/passe)
 
 # 27/11 (profil 947775 : fusions des murs 41 s + 93 s par passe, refaites a chaque variante) : une fusion deja faite DANS CE
@@ -122,7 +124,12 @@ def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbe
     a_epaissir = []   # indices des traits epais (epaissis ensemble apres la boucle)
     sigs = []     # signature de chaque morceau « vrai mur » (convention de dessin) -- meme ordre que morceaux
     n_bandes = n_traits = 0
+    ids_cotes = set()
+    if SANS_COTES:
+        from diag_cotes import ids_objets_de_cote
+        ids_cotes = ids_objets_de_cote(chemin)
     for o in pl.lines + pl.rects + pl.curves:
+        if ids_cotes and id(o) in ids_cotes: continue
         pts = o.get("pts") or []
         if len(pts) < 2: continue
         lw = o.get("linewidth") or 0
