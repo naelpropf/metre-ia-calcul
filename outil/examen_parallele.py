@@ -29,6 +29,17 @@ if len(sys.argv) > 2:
 # s : au-dela, la page calcule ses variantes en parallele. ARRETE par defaut (27/11, 4e examen : 188 -> 247 s pour la page la
 # plus longue, CALIGNAC p11 85 -> 218 s : processeurs surcharges et memoire des fusions perdue entre processus)
 LONGUE = int(os.environ.get("PAGE_LONGUE", "1000000000"))
+# 27/11 soir : plafond de MEMOIRE par page (Linux seulement). Sans lui, une page qui gonfle (3094167_09 : 8 Go) fige toute la
+# machine GitHub, qui ne repond plus (2 h bloquee malgre la limite de 40 min) ; avec lui la page plante seule, proprement.
+MEMOIRE_MAX = int(os.environ.get("MEMOIRE_MAX_MO", "6000")) * 1024 * 1024
+
+
+def _plafond():
+    try:
+        import resource
+        resource.setrlimit(resource.RLIMIT_AS, (MEMOIRE_MAX, MEMOIRE_MAX))
+    except Exception:
+        pass
 print("%d pages, %d a la fois, limite %d s par page" % (len(pages), N, TEMPS_MAX), flush=True)
 debut = time.time()
 
@@ -39,7 +50,8 @@ def une_page(f):
     par = N if durees.get(nom[:80], 0) >= LONGUE else 1
     try:
         r = subprocess.run([sys.executable, "-u", "test_neufs.py", "--page", f], cwd=ici, capture_output=True, text=True,
-                           encoding="utf-8", errors="replace", timeout=TEMPS_MAX, env=dict(os.environ, PARALLELE_PAGE=str(par)))
+                           encoding="utf-8", errors="replace", timeout=TEMPS_MAX, env=dict(os.environ, PARALLELE_PAGE=str(par)),
+                           preexec_fn=_plafond if os.name == "posix" else None)
     except subprocess.TimeoutExpired:
         return "%-60s TROP LONG (> %d s) : mise de cote" % (nom[:60], TEMPS_MAX)
     if r.returncode:
