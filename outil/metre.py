@@ -244,7 +244,7 @@ def lire_textes(chemin, num_page):
         t = haut - bas
         etq.append({"surface_ecrite": float(m.group(1).replace(",", ".")), "x": (l + r) / 2 - OX, "y": OY - (bas + haut) / 2,
                     "taille": t, "x0": l - OX, "x1": r - OX, "top": OY - haut, "_bas_pdf": bas, "_haut_pdf": haut,
-                    "_x0_pdf": l, "_x1_pdf": r})
+                    "_x0_pdf": l, "_x1_pdf": r, "_monte": bx[-1][1] > bx[0][1] + 0.5})
     # nom de la piece : MOTS ENTIERS au-dessus de la surface (27/11 : la boite coupait les lettres qui depassaient
     # -> « ocal ménage », « alle de réunion » ; un mot qui TOUCHE la boite est maintenant garde en entier)
     mots = []
@@ -261,7 +261,14 @@ def lire_textes(chemin, num_page):
         if haut_ > 1.5 * larg:
             # TEXTE VERTICAL (Scanner, 27/11) : le nom n'est pas au-dessus mais A COTE (lignes precedentes a droite)
             s = max(larg, 1)
-            gx0, gx1, gy0, gy1 = e["_x1_pdf"] + 0.2 * s, e["_x1_pdf"] + 4 * s, e["_bas_pdf"] - 4 * s, e["_haut_pdf"] + 4 * s
+            if e.get("_monte"):
+                # 27/11 soir (3091292, 10 etiquettes sur 10) : texte lu de BAS EN HAUT -> le nom est A GAUCHE ;
+                # a droite il n'y avait que les codes de revetement (« SOL / MU / RS03 »)
+                gx0, gx1 = e["_x0_pdf"] - 4 * s, e["_x0_pdf"] - 0.2 * s
+            else:
+                gx0, gx1 = e["_x1_pdf"] + 0.2 * s, e["_x1_pdf"] + 4 * s
+            # dans le sens de lecture, un nom est plus long que la surface (« Atelier de prelevement ») : 10 lignes de marge
+            gy0, gy1 = e["_bas_pdf"] - 10 * s, e["_haut_pdf"] + 10 * s
         else:
             s = max(e["taille"], 1)
             gx0, gx1, gy0, gy1 = e["_x0_pdf"] - 4 * s, e["_x1_pdf"] + 4 * s, e["_haut_pdf"] + 0.2 * s, e["_haut_pdf"] + 4 * s
@@ -300,7 +307,10 @@ def etiquettes(etq):
     freq = Counter(l for e in etq for l in set(e["_lignes"]))
     for e in etq:
         noms = [l for l in e["_lignes"] if freq[l] < 5]
-        e["nom"] = noms[0][:50] if noms else ""
+        nom = noms[0] if noms else ""
+        # 27/11 soir : nom sur 2 lignes (« Atelier de / prelevement », « Infirmier / ») -> on recolle la 2e ligne
+        if len(noms) > 1 and re.search(r"(\b(de|du|des|d'|et|la|le|les|a|en)|[/&+-])$", nom, re.I): nom += " " + noms[1]
+        e["nom"] = nom[:50]
     return etq
 
 
