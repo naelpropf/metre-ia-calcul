@@ -142,6 +142,7 @@ def _pieces_v3(chemin):
                    ("matiere ouvertures de mur", {"OUVERTURES": True}),
                    ("matiere portes en pointilles", {"PORTES_POINTILLES": True}),
                    ("matiere chaine", {"SANS_COTES": True, "OUVERTURES": True, "PORTES_POINTILLES": True}),
+                   ("matiere fermeture poteaux", {"FERMETURE": 1.2}),   # 27/11 nuit : chaine v2 (facade vitree)
                    ] if CHAINE else []) + [
                    # 27/11 « portes entrouvertes » (arcs 10-40 deg) ESSAYE puis retire : 118 -> 118, +150 s
                    # 27/11 « portes en pointilles » SEULE : 118 -> 121 (< +21), +900 s -> retiree ; fuites EN SERIE (poteaux)

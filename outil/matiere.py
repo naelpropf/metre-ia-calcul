@@ -128,6 +128,9 @@ def _memo(cle, calcul):
 
 OUVERTURES = False   # 27/11 : variante v3 « ouvertures de mur » (fermer_ouvertures) ; 61 % -> 48 % des echecs = fuites
 R_OUVERTURE = 0.6    # m : ouvertures de moins de 2 x 0,6 = 1,2 m
+FERMETURE = 0.0      # m ; 27/11 nuit (3068854 : FACADE VITREE ENTRE POTEAUX, le contour descend jusqu'aux vitres,
+# l'archi mesure au nu interieur des poteaux) : variante v3 qui ferme la matiere de ce rayon (pont de poteau a poteau).
+# Une piece n'est rendue que si elle est SEULE dans son trou ferme (test cause_facade.py + planche 0 fausse sur 12).
 
 
 def fermer_ouvertures(mat, m_pt):
@@ -350,6 +353,8 @@ def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbe
                 lambda: unary_union([reels_u] + morceaux[n_reels:]).buffer(0.01 / m_pt, join_style=2))
     if OUVERTURES:
         mat = fermer_ouvertures(mat, m_pt)
+    if FERMETURE:
+        mat = mat.buffer(FERMETURE / m_pt, join_style=2, mitre_limit=5).buffer(-FERMETURE / m_pt, join_style=2, mitre_limit=5)
     DERNIERE_MATIERE[:] = [mat, m_pt]   # pour diag_fuites.py (ou fuit chaque piece, et pourquoi)
     trous = [Polygon(a) for g in getattr(mat, "geoms", [mat]) for a in g.interiors]
     res, reels = [], None
@@ -369,6 +374,8 @@ def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbe
             if vois: t = [trous[vois.most_common(1)[0][0]]]
         if not t: res.append((e, None, None)); continue
         h = min(t, key=lambda h: h.area)
+        if FERMETURE and sum(1 for e2 in etq if h.contains(Point(e2["x"], e2["y"]))) != 1:
+            res.append((e, None, None)); continue   # 27/11 nuit : SEULE dans son trou ferme
         # on rend la bande de 1 cm retiree par la fermeture des fentes
         h = h.buffer(0.01 / m_pt, join_style=2)   # on rend exactement le cm retire par la fermeture des fentes
         a = h.area * m_pt * m_pt
