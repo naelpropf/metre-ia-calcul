@@ -65,6 +65,24 @@ if sys.argv[1] == "--page":
     # 27/11 DIAGNOSTIC 3 : longueur du contour posee sur une COURBE non remplie sans cote (arcs, battants de portes)
     # INVALIDE (548666 p02 : 103 pieces sur 104 touchees, des contours de murs sont des courbes) -> desactive
     bord_courbe = {}
+    # 27/11 DIAGNOSTIC 4 : poteaux dessines en rectangle a trait fin, colles aux murs (compter_poteaux), matiere de la passe
+    # principale refaite ici (DERNIERE_MATIERE vient de la derniere variante)
+    n_poteaux = None   # INVALIDE (27/11 : sur 3068854 les poteaux sont 4 TRAITS separes, pas des rectangles) -> desactive
+    if False:
+        import matiere as _m4, pypdfium2 as _pdf
+        from compter_poteaux import poteaux
+        from shapely.geometry import Polygon as _Poly
+        ch4 = metre.normaliser(f)
+        _o = sys.stdout; sys.stdout = open(os.devnull, "w", encoding="utf-8")
+        try: _m4.pieces_par_matiere(ch4, verbeux=False)
+        finally: sys.stdout.close(); sys.stdout = _o
+        if _m4.DERNIERE_MATIERE:
+            MAT4, m4 = _m4.DERNIERE_MATIERE
+            W4, H4, _, _ = metre.lire_textes(ch4, 0); d4 = _pdf.PdfDocument(ch4); OX4, OY4 = metre.origine(d4[0]); d4.close()
+            n_poteaux = 0
+            for P in poteaux(metre.page_plumber(ch4), m4):
+                g = _Poly([(p[0] - OX4, p[1] - (H4 - OY4)) for p in P])
+                if g.distance(MAT4) * m4 <= 0.05 and not MAT4.contains(g): n_poteaux += 1
     det = [{"nom": r["e"].get("nom", ""), "ecrite": r["e"].get("surface_ecrite"), "mesuree": r.get("a"), "sure": bool(r["sure"]),
             "coupee_bord": bool(r["e"].get("coupee_bord")), "bord_cote_m": bord_cote.get(i) if isinstance(bord_cote, dict) else None,
             "aire_portes_m2": aire_portes.get(i) if isinstance(aire_portes, dict) else None,
@@ -72,7 +90,8 @@ if sys.argv[1] == "--page":
            for i, r in enumerate(R)]   # detail par piece (pour le livre des pieces, mesure seule)
     json.dump({"page": nom, "pieces": n, "sures": s, "coupees_bord": cb, "secondes": duree, "detail": det,
                "diag_erreur": bord_cote.get("erreur") if isinstance(bord_cote, dict) else None,
-               "diag_portes_erreur": aire_portes.get("erreur") if isinstance(aire_portes, dict) else None},
+               "diag_portes_erreur": aire_portes.get("erreur") if isinstance(aire_portes, dict) else None,
+               "poteaux_trait_fin": n_poteaux},
               open(js, "w", encoding="utf-8"), ensure_ascii=False)
     print("%-60s pieces %4d | sures %4d | coupees bord %3d | %d s" % (nom[:60], n, s, cb, time.time() - t), flush=True)
 

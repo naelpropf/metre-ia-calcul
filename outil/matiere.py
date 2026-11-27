@@ -126,7 +126,11 @@ def _memo(cle, calcul):
     return _MEMO[cle]
 
 
+SEUIL_TRAIT = None   # 27/11 : si defini, remplace le seuil d'epaisseur des traits-murs (variante v3 « traits fins », 0,08)
+
+
 def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbeux=True, rendre=False, baies=True, m_force=None):
+    if SEUIL_TRAIT is not None: seuil = SEUIL_TRAIT
     chemin = normaliser(chemin)
     W, H, etq, _ = lire_textes(chemin, 0)
     etq = etiquettes(etq)

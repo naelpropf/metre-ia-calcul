@@ -12,14 +12,19 @@ from PIL import Image, ImageDraw
 f = glob.glob(os.path.join(ici, "plans_neufs", glob.escape(sys.argv[1]) + "*.pdf"))[0]
 sortie = sys.argv[2]; bande = sys.argv[3] if len(sys.argv) > 3 else "presque"
 metre_v3.PARALLELE = 1
-old = sys.stdout; sys.stdout = open(os.devnull, "w", encoding="utf-8")
-R = metre_v3.pieces_v3(f)
-sys.stdout.close(); sys.stdout = old
 import matiere
+if os.environ.get("POINTILLES"): matiere.PORTES_POINTILLES = True
+old = sys.stdout; sys.stdout = open(os.devnull, "w", encoding="utf-8")
+if os.environ.get("MATIERE_SEUIL"):   # 27/11 : pieces d'UNE passe matiere a seuil donne (essais avant variante)
+    R = [{"e": e, "a": a, "h": h, "sure": bool(a and abs(a / e["surface_ecrite"] - 1) <= 0.01)}
+         for e, a, h in matiere.pieces_par_matiere(normaliser(f), seuil=float(os.environ["MATIERE_SEUIL"]), verbeux=False, rendre=True)]
+else:
+    R = metre_v3.pieces_v3(f)
+sys.stdout.close(); sys.stdout = old
 # matiere de la passe PRINCIPALE (celle qui donne la plupart des pieces) : ce que l'outil a pris pour des murs, en rouge
 if os.environ.get("POINTILLES"): matiere.PORTES_POINTILLES = True   # 27/11 : voir la matiere AVEC les portes en tirets fermees
 old = sys.stdout; sys.stdout = open(os.devnull, "w", encoding="utf-8")
-matiere.pieces_par_matiere(f, verbeux=False)
+matiere.pieces_par_matiere(f, seuil=float(os.environ.get("MATIERE_SEUIL", "0.45")), verbeux=False)
 sys.stdout.close(); sys.stdout = old
 MAT = matiere.DERNIERE_MATIERE[0] if matiere.DERNIERE_MATIERE else None
 m_pt = matiere.DERNIERE_MATIERE[1] if matiere.DERNIERE_MATIERE else None

@@ -17,7 +17,7 @@ def modele():
     from safetensors.torch import load_file
     torch.set_num_threads(2)
     net = smp.Unet(encoder_name="resnet34", encoder_weights=None, in_channels=3, classes=4)
-    net.load_state_dict(load_file(os.path.join(MOD, "best.safetensors")))
+    net.load_state_dict(load_file(os.environ.get("VISION_POIDS") or os.path.join(MOD, "best.safetensors")))   # 27/11 : poids re-entraines
     return net.eval()
 
 
@@ -92,3 +92,9 @@ elif __name__ == "__main__" and sys.argv[1] == "--test":
     fa = sum(tot[g, "mur"] for g in ("lettre", "cote", "mobilier")) / max(sum(tot[g, "n"] for g in ("lettre", "cote", "mobilier")), 1)
     print("TOTAL murs vus mur %.0f %% (seuil >= 70) | fausses alarmes %.0f %% (seuil <= 20) -> %s" % (
         100 * rm, 100 * fa, "REUSSI" if rm >= 0.70 and fa <= 0.20 else "ECHEC"))
+    # 27/11 : seuils de la declaration « Vision re-entrainee sur nos plans » (murs >= 80, FA <= 15, portes >= 50)
+    for g in ("lettre", "cote", "mobilier"):   # 27/11 : d'ou viennent les fausses alarmes
+        print("  fausses alarmes %-9s %5d / %5d (%.0f %%)" % (g, tot[g, "mur"], tot[g, "n"], 100 * tot[g, "mur"] / max(tot[g, "n"], 1)))
+    rp = tot["porte", "porte"] / max(tot["porte", "n"], 1)
+    print("DECLARATION re-entrainement : murs %.0f %% (>= 80) | fausses alarmes %.0f %% (<= 15) | portes %.0f %% (>= 50) -> %s" % (
+        100 * rm, 100 * fa, 100 * rp, "REUSSI" if rm >= 0.80 and fa <= 0.15 and rp >= 0.50 else "ECHEC"))
