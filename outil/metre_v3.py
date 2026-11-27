@@ -14,6 +14,7 @@ sys.path.insert(0, ici)
 import matiere, faces
 
 SURE = 0.01
+PROCHE = 0.10   # 27/11 D-13 : releve (mesure seule) des pieces que les variantes mettent a moins de 10 %
 PARALLELE = 2   # 27/11 : variantes en parallele (machine : 2 coeurs)
 ZONE_DE_TRAVAIL = True   # 27/11 : variantes recalculees seulement autour des pieces douteuses
 CANDIDATS = [0.45, 0.25, 0.13]
@@ -72,6 +73,7 @@ def _candidat(arg):
     import metre, matiere, faces, shapely
     metre.ZONE = shapely.from_wkb(zone_wkb) if zone_wkb else None
     out = []
+    proches = []   # 27/11 D-13 (MESURE SEULE) : pieces que la variante met entre 1 % et 10 % -> score secondaire 3 % / 10 %
     try:
         if nom == "contours":
             import contours_dessines
@@ -81,6 +83,8 @@ def _candidat(arg):
             for e, a, h in faces.pieces_par_faces(chemin, params["seuil"], verbeux=False, avec_remplis=False, rendre_faces=True, m_force=m_force):
                 if a and abs(a / e["surface_ecrite"] - 1) <= SURE:
                     out.append(((round(e["x"], 1), round(e["y"], 1)), a, h, nom))
+                elif a and abs(a / e["surface_ecrite"] - 1) <= PROCHE:
+                    proches.append(((round(e["x"], 1), round(e["y"], 1)), abs(a / e["surface_ecrite"] - 1)))
         else:
             params = dict(params, CALCUL_DOUTES=False)   # 27/11 : la variante ne garde que la surface (vitesse, meme resultat)
             ancien = {k: getattr(matiere, k) for k in params}
@@ -89,13 +93,15 @@ def _candidat(arg):
                 for e, a, h in matiere.pieces_par_matiere(chemin, verbeux=False, rendre=True, m_force=m_force):
                     if a and abs(a / e["surface_ecrite"] - 1) <= SURE:
                         out.append(((round(e["x"], 1), round(e["y"], 1)), a, h, nom))
+                    elif a and abs(a / e["surface_ecrite"] - 1) <= PROCHE:
+                        proches.append(((round(e["x"], 1), round(e["y"], 1)), abs(a / e["surface_ecrite"] - 1)))
             finally:
                 for k, v in ancien.items(): setattr(matiere, k, v)
     except Exception as ex:
         print("  variante %s en erreur : %s" % (nom, ex))
     finally:
         metre.ZONE = None
-    return nom, out
+    return nom, out, proches
 
 
 def _pieces_v3(chemin):
@@ -151,11 +157,14 @@ def _pieces_v3(chemin):
                 resultats = list(ex.map(_candidat, args))
         else:
             resultats = [_candidat(a) for a in args]
-        for nom, trouves in resultats:            # ORDRE HISTORIQUE conserve
+        for nom, trouves, proches in resultats:   # ORDRE HISTORIQUE conserve
             for k, a, h, src in trouves:
                 r = res.get(k)
                 if r and not r["sure"]:
                     r.update({"a": a, "h": h, "source": src, "sure": True})
+            for k, ec in proches:                 # MESURE SEULE (D-13) : ne change ni la surface ni « sure »
+                r = res.get(k)
+                if r: r["meilleur_ecart"] = min(ec, r.get("meilleur_ecart", 9.0))
     import metre as _m; _m.ZONE = None   # les contours pixels (fichiers) ne dependent pas de la zone
     # 3. dernier recours : contours de la methode PIXELS (sorties/v1j), contour approche (+-1-2 cm), marque comme tel
     import json

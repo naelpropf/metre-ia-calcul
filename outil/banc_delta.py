@@ -25,7 +25,7 @@ def complet(k):
 def variante(arg):
     k, params = arg
     import metre_v3
-    nom, trouves = metre_v3._candidat((chemin(k), "essai", params, None, None, None))
+    nom, trouves, _ = metre_v3._candidat((chemin(k), "essai", params, None, None, None))
     return k, [[key[0], key[1]] for key, a, h, src in trouves]
 
 

@@ -192,7 +192,9 @@ if sys.argv[1] == "--page":
             "trou": ([round(v, 1) for v in r["h"].bounds] if r.get("h") is not None and hasattr(r["h"], "bounds") else None),
             "x": round(r["e"]["x"], 1), "y": round(r["e"]["y"], 1),
             "mur_en_trop_recuperable": recup.get(i) if isinstance(recup, dict) else None,
-            "aire_ouverte_045": ouvert.get(i) if isinstance(ouvert, dict) else None}
+            "aire_ouverte_045": ouvert.get(i) if isinstance(ouvert, dict) else None,
+            # 27/11 D-13 (mesure seule) : quelle passe a donne la surface, et meilleur ecart atteint par une variante (< 10 %)
+            "source": r.get("source"), "meilleur_ecart_variantes": r.get("meilleur_ecart")}
            for i, r in enumerate(R)]   # detail par piece (pour le livre des pieces, mesure seule)
     json.dump({"page": nom, "pieces": n, "sures": s, "coupees_bord": cb, "secondes": duree, "detail": det,
                "diag_erreur": bord_cote.get("erreur") if isinstance(bord_cote, dict) else None,
