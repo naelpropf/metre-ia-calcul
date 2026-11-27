@@ -155,6 +155,16 @@ if sys.argv[1] == "--page":
             recup = recuperable(MAT6, m6, [(r["e"]["x"], r["e"]["y"], r["e"].get("surface_ecrite"), r.get("a")) for r in R])
     except Exception as ex:
         recup = {"erreur": str(ex)[:80]}
+    # 27/11 DIAGNOSTIC 8 : « renflement de porte » -- surface du contour OUVERT de 0,45 m (retrecir puis regonfler, angles droits)
+    ouvert = {}   # INVALIDE (27/11 : rogne aussi des recoins legitimes) -> desactive
+    if False:
+        m8 =metre.echelle_par_cotes(metre.normaliser(f), 0)[0] or (m6 if isinstance(ferme, dict) and "erreur" not in ferme else None)
+        if m8:
+            r8 = 0.45 / m8
+            for i, r in enumerate(R):
+                h = r.get("h")
+                if h is not None and hasattr(h, "exterior") and r.get("a"):
+                    ouvert[i] = round(h.buffer(-r8, join_style=2, mitre_limit=5).buffer(r8, join_style=2, mitre_limit=5).area * m8 * m8, 3)
     n_poteaux = None   # INVALIDE (27/11 : sur 3068854 les poteaux sont 4 TRAITS separes, pas des rectangles) -> desactive
     if False:
         import matiere as _m4, pypdfium2 as _pdf
@@ -181,7 +191,8 @@ if sys.argv[1] == "--page":
             # 548666 a 13 logements identiques et un tableau de cases de meme taille)
             "trou": ([round(v, 1) for v in r["h"].bounds] if r.get("h") is not None and hasattr(r["h"], "bounds") else None),
             "x": round(r["e"]["x"], 1), "y": round(r["e"]["y"], 1),
-            "mur_en_trop_recuperable": recup.get(i) if isinstance(recup, dict) else None}
+            "mur_en_trop_recuperable": recup.get(i) if isinstance(recup, dict) else None,
+            "aire_ouverte_045": ouvert.get(i) if isinstance(ouvert, dict) else None}
            for i, r in enumerate(R)]   # detail par piece (pour le livre des pieces, mesure seule)
     json.dump({"page": nom, "pieces": n, "sures": s, "coupees_bord": cb, "secondes": duree, "detail": det,
                "diag_erreur": bord_cote.get("erreur") if isinstance(bord_cote, dict) else None,

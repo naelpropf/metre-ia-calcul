@@ -126,6 +126,41 @@ def _memo(cle, calcul):
     return _MEMO[cle]
 
 
+OUVERTURES = False   # 27/11 : variante v3 « ouvertures de mur » (fermer_ouvertures) ; 61 % -> 48 % des echecs = fuites
+R_OUVERTURE = 0.6    # m : ouvertures de moins de 2 x 0,6 = 1,2 m
+
+
+def fermer_ouvertures(mat, m_pt):
+    """27/11 -- comme le metreur : une OUVERTURE de mur (porte, passage) se ferme au NU du mur, quel que soit le dessin de la
+    porte. Fermeture de la matiere de R_OUVERTURE (epaissir puis amincir, angles droits) ; parmi les morceaux ajoutes, on ne
+    garde que les PONTS : contact avec les murs en >= 2 endroits separes (les deux jambages). Une niche ou un coin ne touche
+    les murs qu'en UN endroit continu -> rejete (la piece n'est pas rognee)."""
+    r = R_OUVERTURE / m_pt; e = 0.005 / m_pt
+    ferme = mat.buffer(r, join_style=2, mitre_limit=5).buffer(-r, join_style=2, mitre_limit=5)
+    ajout = ferme.difference(mat)
+    ponts = []
+    import shapely
+    from shapely.ops import linemerge
+    # 27/11 (947775 : > 30 min, murs hachures -> milliers de morceaux entre hachures) : (1) un pont fait au plus
+    # 2 x R_OUVERTURE x 0,6 m d'epaisseur de mur -> les morceaux plus grands sont ecartes d'emblee ; (2) contact = bord du
+    # morceau DANS la matiere elargie, calculee UNE fois, decoupee autour du morceau
+    morceaux_aj = [g for g in getattr(ajout, "geoms", [ajout])
+                   if not g.is_empty and 0.005 <= g.area * m_pt * m_pt <= 2 * R_OUVERTURE * 0.6]
+    if not morceaux_aj: return mat
+    mat_e = mat.buffer(e, join_style=2)
+    for g in morceaux_aj:
+        x0, y0, x1, y1 = g.bounds
+        local = shapely.clip_by_rect(mat_e, x0 - 2 * e, y0 - 2 * e, x1 + 2 * e, y1 + 2 * e)
+        contact = g.boundary.intersection(local)
+        if contact.is_empty: continue
+        lignes = [c for c in getattr(contact, "geoms", [contact]) if c.length > 0]
+        if not lignes: continue
+        fusion = linemerge(lignes) if len(lignes) > 1 else lignes[0]
+        n = len(getattr(fusion, "geoms", [fusion]))
+        if n >= 2: ponts.append(g)
+    return unary_union([mat] + ponts) if ponts else mat
+
+
 SEUIL_TRAIT = None   # 27/11 : si defini, remplace le seuil d'epaisseur des traits-murs (variante v3 « traits fins », 0,08)
 
 
@@ -309,6 +344,8 @@ def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbe
     # micro-ecarts du dessin (ex. Repro, 25/11) : on referme les fentes < 2 cm
     mat = _memo(_empreinte(morceaux, "mat", m_pt, n_reels),
                 lambda: unary_union([reels_u] + morceaux[n_reels:]).buffer(0.01 / m_pt, join_style=2))
+    if OUVERTURES:
+        mat = fermer_ouvertures(mat, m_pt)
     DERNIERE_MATIERE[:] = [mat, m_pt]   # pour diag_fuites.py (ou fuit chaque piece, et pourquoi)
     trous = [Polygon(a) for g in getattr(mat, "geoms", [mat]) for a in g.interiors]
     res, reels = [], None
