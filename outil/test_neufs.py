@@ -130,7 +130,8 @@ if sys.argv[1] == "--page":
                 if ferme[i] is not None or s10.get(i): ferme[i] = dict(ferme[i] or {"seule": False}, seule_10=s10.get(i, False))
             # (b) traits fins >= 0,08 ajoutes a la matiere (comme des murs), fermeture 0,6 m ; sautee si > 60 000 traits
             pl6 = metre.page_plumber(metre.normaliser(f))
-            if len(pl6.lines) + len(pl6.curves) <= 60000:
+            # 27/11 : (b) RETIREE de l'examen (3 machines tuees par manque de memoire, code 143) -> sur quelques pages, au PC
+            if os.environ.get("DIAG_TRAITS_FINS") and len(pl6.lines) + len(pl6.curves) <= 60000:
                 import pypdfium2 as _pd6
                 from shapely.geometry import LineString as _Ls6
                 from shapely.ops import unary_union as _uu6
