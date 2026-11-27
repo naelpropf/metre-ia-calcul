@@ -11,20 +11,12 @@ from faces import kasa
 
 
 def arcs_pointilles(pl, m_pt):
-    # 27/11 soir : un arc en tirets est trace avec UN SEUL stylo -> on ne regroupe que des tirets de meme couleur et meme
-    # epaisseur (3094167 : les tirets gris de l'arc fusionnaient avec les hachures noires du mur voisin -> 0 arc ; gris seuls -> 1)
-    stylos = collections.defaultdict(list)
+    petits = []
     for o in pl.curves + pl.lines:
         pts = o.get("pts") or []
         if o.get("fill") or len(pts) < 2: continue
         L = sum(math.dist(a, b) for a, b in zip(pts, pts[1:])) * m_pt
-        if L <= 0.40: stylos[(str(o.get("stroking_color")), round(o.get("linewidth") or 0, 2))].append(pts)   # un tiret : court
-    out = []
-    for petits in stylos.values(): out += _arcs_d_un_stylo(petits, m_pt)
-    return out
-
-
-def _arcs_d_un_stylo(petits, m_pt):
+        if L <= 0.40: petits.append(pts)           # un tiret : court
     if not petits: return []
     from scipy.spatial import cKDTree
     bouts = np.array([p[0] for p in petits] + [p[-1] for p in petits], float)

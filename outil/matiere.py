@@ -102,6 +102,7 @@ def _pas_mur(c):
 
 
 DOUBLE_TRAIT = False # murs dessines en deux traits fins paralleles (convention CAO classique ; plan Scanner)
+ECART_MIN_DT = 0.05  # m ; 27/11 soir (3068854 : facade vitree = 2 longs traits bleus fins a 3 cm) : variante « double trait serre » a 0,01
 SANS_COTES = False    # 27/11 (548666 : chaines de cotes = courbes epaisses prises pour des murs) : variante v3 qui retire
                       # de la matiere les traits/courbes qui PORTENT un chiffre de cote (diag_cotes.ids_objets_de_cote)
 CALCUL_DOUTES = True  # 27/11 : les variantes v3 ne gardent que la surface -> elles sautent la mesure « part inventee » (34 s/passe)
@@ -257,7 +258,7 @@ def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbe
                     v = ((x4 - x3) / l2.length, (y4 - y3) / l2.length)
                     if abs(ux * v[1] - uy * v[0]) > 0.035: continue          # pas parallele (~2 degres)
                     d = abs((x3 - x1) * uy - (y3 - y1) * ux) * m_pt           # ecart perpendiculaire
-                    if not (0.05 <= d <= 0.40): continue
+                    if not (ECART_MIN_DT <= d <= 0.40): continue
                     p3, p4 = (x3 - x1) * ux + (y3 - y1) * uy, (x4 - x1) * ux + (y4 - y1) * uy
                     recouvre = min(L, max(p3, p4)) - max(0, min(p3, p4))
                     if recouvre >= 0.5 * min(L, l2.length): garde.update((i, j))
