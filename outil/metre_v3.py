@@ -17,6 +17,7 @@ SURE = 0.01
 PROCHE = 0.10   # 27/11 D-13 : releve (mesure seule) des pieces que les variantes mettent a moins de 10 %
 PARALLELE = 2   # 27/11 : variantes en parallele (machine : 2 coeurs)
 ZONE_DE_TRAVAIL = True   # 27/11 : variantes recalculees seulement autour des pieces douteuses
+CHAINE = os.environ.get("V3_CHAINE", "1") == "1"   # 27/11 D-13 : chaine de corrections cumulees v1 (V3_CHAINE=0 pour l ancienne reference)
 CANDIDATS = [0.45, 0.25, 0.13]
 
 
@@ -136,6 +137,12 @@ def _pieces_v3(chemin):
                    ("matiere fenetres en paquet", {"BAIES_PAQUET": True}),  # 26/11 racine Guyane
                    ("matiere sans fonds blancs", {"SANS_BLANC": True}),     # 26/11 racine Briffaut
                    ("matiere murs neutres", {"NEUTRES": True}),           # 27/11 racine 3102902 (couleur = annotation)
+                   ] + ([   # 27/11 D-13 : CHAINE DE CORRECTIONS CUMULEES v1, jugee d'UN BLOC (declaration au coffre)
+                   ("matiere sans cotes", {"SANS_COTES": True}),
+                   ("matiere ouvertures de mur", {"OUVERTURES": True}),
+                   ("matiere portes en pointilles", {"PORTES_POINTILLES": True}),
+                   ("matiere chaine", {"SANS_COTES": True, "OUVERTURES": True, "PORTES_POINTILLES": True}),
+                   ] if CHAINE else []) + [
                    # 27/11 « portes entrouvertes » (arcs 10-40 deg) ESSAYE puis retire : 118 -> 118, +150 s
                    # 27/11 « portes en pointilles » SEULE : 118 -> 121 (< +21), +900 s -> retiree ; fuites EN SERIE (poteaux)
                    # 27/11 « ouvertures de mur » v2 (murs epais) ESSAYE puis retire : 118 -> 125 (+7 < +21), examen 10 min
