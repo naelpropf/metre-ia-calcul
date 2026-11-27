@@ -17,7 +17,7 @@ if sys.argv[1] == "--page":
     if os.path.exists(js): print("%-60s deja fait" % nom[:60]); sys.exit(0)
     t = time.time()
     import metre_v3
-    metre_v3.PARALLELE = 1
+    metre_v3.PARALLELE = int(os.environ.get("PARALLELE_PAGE", "1"))   # 27/11 : pages longues -> variantes en parallele
     old = sys.stdout; sys.stdout = open(os.devnull, "w", encoding="utf-8")
     try:
         R = metre_v3.pieces_v3(f)

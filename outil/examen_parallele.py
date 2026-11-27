@@ -19,8 +19,14 @@ if os.path.exists(fd):
     durees = json.load(open(fd, encoding="utf-8"))
 pages.sort(key=lambda f: (-durees.get(os.path.splitext(os.path.basename(f))[0][:80], 0), f))
 if len(sys.argv) > 2:
+    # 27/11 : repartition EQUILIBREE (la plus longue page restante va a la part la moins chargee) au lieu d'une page sur n
     k, n = (int(x) for x in sys.argv[2].split("/"))
-    pages = pages[k - 1::n]
+    charge, parts = [0.0] * n, [[] for _ in range(n)]
+    for f in pages:
+        i = min(range(n), key=lambda j: (charge[j], j))
+        parts[i].append(f); charge[i] += max(durees.get(os.path.splitext(os.path.basename(f))[0][:80], 0), 1)
+    pages = parts[k - 1]
+LONGUE = int(os.environ.get("PAGE_LONGUE", "100"))   # s : au-dela, la page calcule ses variantes en parallele (N processus)
 print("%d pages, %d a la fois, limite %d s par page" % (len(pages), N, TEMPS_MAX), flush=True)
 debut = time.time()
 
@@ -28,9 +34,10 @@ debut = time.time()
 def une_page(f):
     nom = os.path.splitext(os.path.basename(f))[0]
     t = time.time()
+    par = N if durees.get(nom[:80], 0) >= LONGUE else 1
     try:
         r = subprocess.run([sys.executable, "-u", "test_neufs.py", "--page", f], cwd=ici, capture_output=True, text=True,
-                           encoding="utf-8", errors="replace", timeout=TEMPS_MAX)
+                           encoding="utf-8", errors="replace", timeout=TEMPS_MAX, env=dict(os.environ, PARALLELE_PAGE=str(par)))
     except subprocess.TimeoutExpired:
         return "%-60s TROP LONG (> %d s) : mise de cote" % (nom[:60], TEMPS_MAX)
     if r.returncode:
