@@ -16,6 +16,10 @@ from metre import lire_textes, etiquettes, echelle_par_cotes, normaliser, origin
 from faces import kasa
 
 
+PORTE_ANGLE_MIN = 0.7   # rad : ouverture mini d'un arc de porte (27/11 : 36 % des arcs des neufs sont ENTROUVERTS 10-40 deg ;
+                        # variante v3 « portes entrouvertes » = 10 deg)
+
+
 def portes(pl, m_pt, conv):
     """cordes gond -> bouts, pour chaque arc de porte (voir faces.py : Kasa si >= 5 points, sinon angle droit)."""
     from scipy.spatial import cKDTree
@@ -32,7 +36,7 @@ def portes(pl, m_pt, conv):
                 cx, cy, r = k
                 a1 = math.atan2(pts[0][1] - cy, pts[0][0] - cx); a2 = math.atan2(pts[-1][1] - cy, pts[-1][0] - cx)
                 bal = abs((a2 - a1 + math.pi) % (2 * math.pi) - math.pi)
-                if 0.55 <= r * m_pt <= 1.3 and 0.7 <= bal <= 2.1: g = (cx, cy)
+                if 0.55 <= r * m_pt <= 1.3 and PORTE_ANGLE_MIN <= bal <= 2.1: g = (cx, cy)
         if g is None and len(pts) <= 8:
             (ax, ay), (bx, by) = pts[0], pts[-1]
             cl = math.hypot(bx - ax, by - ay)
