@@ -10,7 +10,7 @@ import math, sys
 import numpy as np
 sys.stdout.reconfigure(encoding="utf-8")
 import pdfplumber, pypdfium2 as pdfium
-from shapely.geometry import LineString, Point, Polygon
+from shapely.geometry import LineString, Point, Polygon, box
 from shapely.ops import unary_union
 from metre import lire_textes, etiquettes, echelle_par_cotes, normaliser, origine, page_plumber, dans_zone
 from faces import kasa
@@ -283,7 +283,12 @@ def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbe
         h = h.buffer(0.01 / m_pt, join_style=2)   # on rend exactement le cm retire par la fermeture des fentes
         a = h.area * m_pt * m_pt
         # CONFIANCE (ordre de verification, idee d'OpenTakeoff confidence.ts + notre atout la surface ecrite) :
-        if reels is None: reels = reels_u.buffer(0.03 / m_pt)
+        # 27/11 (profil CALIGNAC p5 : 52 s sur 92 dans UN buffer de tous les murs du plan) : on n'epaissit que les murs
+        # PROCHES de la piece. Exact : un point du bord est a moins de r d'un mur ssi il l'est d'un mur de la boite
+        # elargie de r ; marge 2r pour que les coupes de la boite restent loin du bord.
+        r_ = 0.03 / m_pt
+        x0, y0, x1, y1 = h.bounds
+        reels = reels_u.intersection(box(x0 - 2 * r_, y0 - 2 * r_, x1 + 2 * r_, y1 + 2 * r_)).buffer(r_)
         bord = h.exterior
         e["part_inventee"] = round(1 - bord.intersection(reels).length / max(bord.length, 1e-9), 3)
         e["ecart_ecrit_pct"] = round(100 * (a / e["surface_ecrite"] - 1), 2) if e.get("surface_ecrite") else None
