@@ -148,9 +148,10 @@ def _pieces_v3(chemin):
                    ("matiere ouvertures de mur", {"OUVERTURES": True}),
                    ("matiere portes en pointilles", {"PORTES_POINTILLES": True}),
                    ("matiere chaine", {"SANS_COTES": True, "OUVERTURES": True, "PORTES_POINTILLES": True}),
-                   ("matiere fermeture poteaux", {"FERMETURE": 1.2}),   # 27/11 nuit : chaine v2 (facade vitree)
-                   # 27/11 soir : facade vitree en 2 longs traits fins a 3 cm (3068854) = matiere, puis pont poteau-facade
-                   ("matiere double trait serre", {"DOUBLE_TRAIT": True, "ECART_MIN_DT": 0.01, "FERMETURE": 1.2}),
+                   # 28/11 v3 : « fermeture poteaux » (FERMETURE 1,2 seule, chaine v2) REMPLACEE par la variante qui la contient
+                   # (une passe de plus = 947775 au-dela de 1 500 s, v1 et v2 refusees) ; v1 sans filtre de longueur (+14 vs +9)
+                   # facade vitree en 2 longs traits fins a 3 cm (3068854) = matiere, puis pont poteau-facade
+                   ("matiere double trait serre", {"DOUBLE_TRAIT": True, "ECART_MIN_DT": 0.01, "LONG_DT_SERRE": 0.0, "FERMETURE": 1.2}),
                    ] if CHAINE else []) + [
                    # 27/11 « portes entrouvertes » (arcs 10-40 deg) ESSAYE puis retire : 118 -> 118, +150 s
                    # 27/11 « portes en pointilles » SEULE : 118 -> 121 (< +21), +900 s -> retiree ; fuites EN SERIE (poteaux)
