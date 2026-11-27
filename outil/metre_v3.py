@@ -130,7 +130,7 @@ def _pieces_v3(chemin):
                    ("matiere fenetres en paquet", {"BAIES_PAQUET": True}),  # 26/11 racine Guyane
                    ("matiere sans fonds blancs", {"SANS_BLANC": True}),     # 26/11 racine Briffaut
                    ("matiere murs neutres", {"NEUTRES": True}),           # 27/11 racine 3102902 (couleur = annotation)
-                   ("matiere sans cotes", {"SANS_COTES": True}),          # 27/11 racine 548666 (chaine de cotes = mur)
+                   # 27/11 « matiere sans cotes » ESSAYE puis retire : +10 sures sur les neufs (118 -> 128) < seuil +21, +100 s
                    # 27/11 : « matiere etiquette proche » ESSAYE puis retire (banc 125 -> 125, aucun gain, +temps)
                    ] + ([("matiere fiche de conventions", {"PAS_MUR": _fiche(chemin)})] if _fiche(chemin) else []) + (
                    [("matiere + murs IA", {"IA_MURS": True})] if os.environ.get("V3_IA", "1") == "1" and glob.glob(os.path.join(ici, "sorties", "objets_appr_mm*", os.path.basename(chemin)[:7] + "*")) else []) + [

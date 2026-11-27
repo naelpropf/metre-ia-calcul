@@ -46,11 +46,33 @@ if sys.argv[1] == "--page":
                     bord_cote[i] = round(h.exterior.intersection(zone).length * m, 2)
     except Exception as ex:
         bord_cote = {"erreur": str(ex)[:80]}
+    # 27/11 DIAGNOSTIC 2 : surface de chaque piece dans les SECTEURS DE DEBATTEMENT des portes (diag_portes)
+    aire_portes = {}
+    try:
+        import matiere as _mat2
+        from diag_portes import secteurs
+        from shapely.ops import unary_union as _uu
+        m2 = metre.echelle_par_cotes(metre.normaliser(f), 0)[0] or (_mat2.DERNIERE_MATIERE[1] if _mat2.DERNIERE_MATIERE else None)
+        S = secteurs(f, m2) if m2 else []
+        if S:
+            zs = _uu(S)
+            for i, r in enumerate(R):
+                h = r.get("h")
+                if h is not None and hasattr(h, "exterior"):
+                    aire_portes[i] = round(h.intersection(zs).area * m2 * m2, 3)
+    except Exception as ex:
+        aire_portes = {"erreur": str(ex)[:80]}
+    # 27/11 DIAGNOSTIC 3 : longueur du contour posee sur une COURBE non remplie sans cote (arcs, battants de portes)
+    # INVALIDE (548666 p02 : 103 pieces sur 104 touchees, des contours de murs sont des courbes) -> desactive
+    bord_courbe = {}
     det = [{"nom": r["e"].get("nom", ""), "ecrite": r["e"].get("surface_ecrite"), "mesuree": r.get("a"), "sure": bool(r["sure"]),
-            "coupee_bord": bool(r["e"].get("coupee_bord")), "bord_cote_m": bord_cote.get(i) if isinstance(bord_cote, dict) else None}
+            "coupee_bord": bool(r["e"].get("coupee_bord")), "bord_cote_m": bord_cote.get(i) if isinstance(bord_cote, dict) else None,
+            "aire_portes_m2": aire_portes.get(i) if isinstance(aire_portes, dict) else None,
+            "bord_courbe_m": bord_courbe.get(i) if isinstance(bord_courbe, dict) else None}
            for i, r in enumerate(R)]   # detail par piece (pour le livre des pieces, mesure seule)
     json.dump({"page": nom, "pieces": n, "sures": s, "coupees_bord": cb, "secondes": duree, "detail": det,
-               "diag_erreur": bord_cote.get("erreur") if isinstance(bord_cote, dict) else None},
+               "diag_erreur": bord_cote.get("erreur") if isinstance(bord_cote, dict) else None,
+               "diag_portes_erreur": aire_portes.get("erreur") if isinstance(aire_portes, dict) else None},
               open(js, "w", encoding="utf-8"), ensure_ascii=False)
     print("%-60s pieces %4d | sures %4d | coupees bord %3d | %d s" % (nom[:60], n, s, cb, time.time() - t), flush=True)
 

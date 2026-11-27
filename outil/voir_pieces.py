@@ -75,6 +75,13 @@ for i, (q, r) in enumerate(choix):
         for a, b, c, d_ in _LC:
             if max(a, c) < x0 or min(a, c) > x1 or max(b, d_) < y0 or min(b, d_) > y1: continue
             dr.line([((a - ox) * sc, (b - oy) * sc), ((c - ox) * sc, (d_ - oy) * sc)], fill=(0, 60, 255, 255), width=4)
+    if os.environ.get("PORTES"):   # 27/11 : secteurs de debattement reconnus (diag_portes) en MAGENTA
+        from diag_portes import secteurs
+        if "_SP" not in globals(): globals()["_SP"] = secteurs(f, m_pt)
+        for S in _SP:
+            a, b, c, d_ = S.bounds
+            if c < x0 or a > x1 or d_ < y0 or b > y1: continue
+            dr.polygon([((px - ox) * sc, (py - oy) * sc) for px, py in S.exterior.coords], outline=(220, 0, 220, 255), fill=(220, 0, 220, 60))
     pts = [((px - ox) * sc, (py - oy) * sc) for px, py in r["h"].exterior.coords]
     dr.line(pts + [pts[0]], fill=(0, 170, 0, 255), width=3)
     ex, ey = (r["e"]["x"] - ox) * sc, (r["e"]["y"] - oy) * sc
