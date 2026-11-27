@@ -23,11 +23,31 @@ if sys.argv[1] == "--page":
         R = metre_v3.pieces_v3(f)
     finally:
         sys.stdout.close(); sys.stdout = old
+    duree = round(time.time() - t)   # duree du METRE seul (le diagnostic ci-dessous n'est pas compte)
     n, s = len(R), sum(1 for r in R if r["sure"])
     cb = sum(1 for r in R if r["e"].get("coupee_bord"))
+    # 27/11 DIAGNOSTIC (mesure seule, ne change rien au metre) : longueur du contour de chaque piece a moins de 3 cm d'une
+    # LIGNE DE COTE reconnue par la lecture de l'echelle (cause vue sur 548666 CAVE 11 : la cote prise pour un mur)
+    bord_cote = {}
+    try:
+        import metre
+        from shapely.geometry import LineString
+        from shapely.ops import unary_union
+        ch = metre.normaliser(f); m = metre.echelle_par_cotes(ch, 0)[0]
+        cl = metre.LIGNES_COTES.get(os.path.abspath(ch), [])
+        if m and cl:
+            zone = unary_union([LineString([(a, b), (c, d)]) for a, b, c, d in cl]).buffer(0.03 / m)
+            for i, r in enumerate(R):
+                h = r.get("h")
+                if h is not None and hasattr(h, "exterior"):
+                    bord_cote[i] = round(h.exterior.intersection(zone).length * m, 2)
+    except Exception as ex:
+        bord_cote = {"erreur": str(ex)[:80]}
     det = [{"nom": r["e"].get("nom", ""), "ecrite": r["e"].get("surface_ecrite"), "mesuree": r.get("a"), "sure": bool(r["sure"]),
-            "coupee_bord": bool(r["e"].get("coupee_bord"))} for r in R]   # detail par piece (pour le livre des pieces, mesure seule)
-    json.dump({"page": nom, "pieces": n, "sures": s, "coupees_bord": cb, "secondes": round(time.time() - t), "detail": det},
+            "coupee_bord": bool(r["e"].get("coupee_bord")), "bord_cote_m": bord_cote.get(i) if isinstance(bord_cote, dict) else None}
+           for i, r in enumerate(R)]   # detail par piece (pour le livre des pieces, mesure seule)
+    json.dump({"page": nom, "pieces": n, "sures": s, "coupees_bord": cb, "secondes": duree, "detail": det,
+               "diag_erreur": bord_cote.get("erreur") if isinstance(bord_cote, dict) else None},
               open(js, "w", encoding="utf-8"), ensure_ascii=False)
     print("%-60s pieces %4d | sures %4d | coupees bord %3d | %d s" % (nom[:60], n, s, cb, time.time() - t), flush=True)
 
