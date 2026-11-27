@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        k: [1, 2, 3, 4, 5]   # 27/11 : GitHub en fait tourner 5 a 7 a la fois ; au-dela, les parts attendent leur tour
+        k: [1, 2, 3, 4, 5, 6]   # 27/11 : GitHub en fait tourner 5 a 7 a la fois ; au-dela, les parts attendent leur tour
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -28,8 +28,9 @@ jobs:
           cache: pip
           cache-dependency-path: requirements.txt
       - run: pip install -q -r requirements.txt
-      - name: pages de la part ${{ matrix.k }}/5
-        run: cd outil && nproc && python examen_parallele.py $(nproc) ${{ matrix.k }}/5
+      # 27/11 : 2 pages a la fois (4 a la fois = chaque page 1,5 fois plus lente : 2 vrais coeurs dedoubles ?)
+      - name: pages de la part ${{ matrix.k }}/6
+        run: cd outil && nproc && python examen_parallele.py 2 ${{ matrix.k }}/6
       - uses: actions/upload-artifact@v4
         with:
           name: part-${{ matrix.k }}
