@@ -104,13 +104,45 @@ if sys.argv[1] == "--page":
             ou = {}
             for i, r in enumerate(R):
                 p = _Pt6(r["e"]["x"], r["e"]["y"])
-                t = [j for j in (arbre.query(p) if arbre is not None else []) if trous[j].contains(p)]
-                ou[i] = min(t, key=lambda j: trous[j].area) if t else None
+                cand = [j for j in (arbre.query(p) if arbre is not None else []) if trous[j].contains(p)]
+                ou[i] = min(cand, key=lambda j: trous[j].area) if cand else None
             compte = {}
             for j in ou.values():
                 if j is not None: compte[j] = compte.get(j, 0) + 1
             for i, j in ou.items():
                 ferme[i] = None if j is None else {"seule": compte[j] == 1, "surface": round(trous[j].area * m6 * m6, 2)}
+
+            def _seules(MATx, rr):   # 27/11 : pieces SEULES dans un trou apres fermeture de rr metres
+                Mc = MATx.buffer(rr / m6, join_style=2, mitre_limit=5).buffer(-rr / m6, join_style=2, mitre_limit=5)
+                T = [_Pg6(a) for g in getattr(Mc, "geoms", [Mc]) for a in g.interiors]
+                A = _ST6(T) if T else None
+                o2 = {}
+                for i, r in enumerate(R):
+                    p = _Pt6(r["e"]["x"], r["e"]["y"])
+                    t = [j for j in (A.query(p) if A is not None else []) if T[j].contains(p)]
+                    o2[i] = min(t, key=lambda j: T[j].area) if t else None
+                cpt = {}
+                for j in o2.values():
+                    if j is not None: cpt[j] = cpt.get(j, 0) + 1
+                return {i: (j is not None and cpt[j] == 1) for i, j in o2.items()}
+            s10 = _seules(MAT6, 1.0)
+            for i in ferme:
+                if ferme[i] is not None or s10.get(i): ferme[i] = dict(ferme[i] or {"seule": False}, seule_10=s10.get(i, False))
+            # (b) traits fins >= 0,08 ajoutes a la matiere (comme des murs), fermeture 0,6 m ; sautee si > 60 000 traits
+            pl6 = metre.page_plumber(metre.normaliser(f))
+            if len(pl6.lines) + len(pl6.curves) <= 60000:
+                import pypdfium2 as _pd6
+                from shapely.geometry import LineString as _Ls6
+                from shapely.ops import unary_union as _uu6
+                W6, H6, _, _ = metre.lire_textes(metre.normaliser(f), 0); d6 = _pd6.PdfDocument(metre.normaliser(f))
+                OX6, OY6 = metre.origine(d6[0]); d6.close(); dy6 = H6 - OY6
+                fins = [_Ls6([(p[0] - OX6, p[1] - dy6) for p in o["pts"]]) for o in pl6.lines + pl6.curves
+                        if not o.get("fill") and len(o.get("pts") or []) >= 2 and 0.08 <= (o.get("linewidth") or 0) < 0.45]
+                if fins:
+                    MATf = _uu6([MAT6] + [g.buffer(0.001 / m6, cap_style=2) for g in fins])
+                    sf = _seules(MATf, 0.6)
+                    for i in ferme:
+                        if ferme[i] is not None or sf.get(i): ferme[i] = dict(ferme[i] or {"seule": False}, seule_fins=sf.get(i, False))
     except Exception as ex:
         ferme = {"erreur": str(ex)[:80]}
     n_poteaux = None   # INVALIDE (27/11 : sur 3068854 les poteaux sont 4 TRAITS separes, pas des rectangles) -> desactive
