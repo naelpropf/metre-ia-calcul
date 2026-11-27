@@ -132,7 +132,8 @@ def _pieces_v3(chemin):
                    ("matiere murs neutres", {"NEUTRES": True}),           # 27/11 racine 3102902 (couleur = annotation)
                    # 27/11 « portes entrouvertes » (arcs 10-40 deg) ESSAYE puis retire : 118 -> 118, +150 s
                    # 27/11 « portes en pointilles » SEULE : 118 -> 121 (< +21), +900 s -> retiree ; fuites EN SERIE (poteaux)
-                   ("matiere ouvertures de mur", {"OUVERTURES": True}),   # 27/11 : fermer les ouvertures au nu (ponts)
+                   # 27/11 « ouvertures de mur » ESSAYE puis retire : 118 -> 126 (+8 < +21), examen 9 min 45 ; faux ponts
+                   # entre un mur et un battant/meuble dessine (548666) -> a reprendre : ponts entre DEUX bouts de MUR seulement
                    # 27/11 « traits fins 0,08 + pointilles » ESSAYE puis retire : +9 sur 59 pages, 1 machine plantee (memoire),
                    # 11 pages perdues, page max 480 s. A reprendre SEULEMENT sur les pages aux cloisons en traits fins.
                    # 27/11 « matiere sans cotes » ESSAYE puis retire : +10 sures sur les neufs (118 -> 128) < seuil +21, +100 s

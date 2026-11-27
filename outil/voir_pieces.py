@@ -14,6 +14,7 @@ sortie = sys.argv[2]; bande = sys.argv[3] if len(sys.argv) > 3 else "presque"
 metre_v3.PARALLELE = 1
 import matiere
 if os.environ.get("POINTILLES"): matiere.PORTES_POINTILLES = True
+if os.environ.get("OUVERTURES"): matiere.OUVERTURES = True   # 27/11 : voir les ponts de la variante « ouvertures de mur »
 old = sys.stdout; sys.stdout = open(os.devnull, "w", encoding="utf-8")
 if os.environ.get("MATIERE_SEUIL"):   # 27/11 : pieces d'UNE passe matiere a seuil donne (essais avant variante)
     R = [{"e": e, "a": a, "h": h, "sure": bool(a and abs(a / e["surface_ecrite"] - 1) <= 0.01)}
