@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["outil/**", ".github/workflows/examen.yml"]
+    paths: ["outil/**", ".github/workflows/examen.yml", "!outil/exercices_plans.py", "!outil/fiches_part.py", "!outil/objets_une.py", "!outil/pensee_dessinee.py", "!outil/purger_fiches_anciennes.py"]   # 28/11 : les scripts des fiches ne relancent pas l examen
 permissions:
   contents: write
 concurrency:
