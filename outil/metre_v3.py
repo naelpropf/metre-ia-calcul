@@ -197,7 +197,11 @@ def _pieces_v3(chemin):
         e = r["e"]
         if r["sure"]: e["doutes"] = [d for d in e.get("doutes", []) if not d.startswith("écart")]
         elif r["a"] is None: e["doutes"] = ["pièce non fermée : à tracer à la main"]
-        if not r["sure"] and m_b and e.get("surface_ecrite") and \
+        # 27/11 soir : 57 « coupees » mesurees sur 64 avaient un contour LOIN du bord (fuites vers une piece voisine, pas des
+        # pieces coupees) -> si un contour existe, la piece n'est coupee que s'il touche le bord de la feuille (50 cm)
+        h_ = r.get("h")
+        touche = h_ is None or bord.distance(h_) * m_b <= 0.5 if m_b else True
+        if not r["sure"] and m_b and e.get("surface_ecrite") and touche and \
                 bord.distance(Point(e["x"], e["y"])) * m_b <= 1.2 * math.sqrt(e["surface_ecrite"]) + 1.0:
             e["coupee_bord"] = True
             e.setdefault("doutes", []).insert(0, "coupée par le bord de la feuille ? hors périmètre, ou feuille voisine à fournir")
