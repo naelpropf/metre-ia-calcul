@@ -353,8 +353,6 @@ def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbe
                 lambda: unary_union([reels_u] + morceaux[n_reels:]).buffer(0.01 / m_pt, join_style=2))
     if OUVERTURES:
         mat = fermer_ouvertures(mat, m_pt)
-    if FERMETURE:
-        mat = mat.buffer(FERMETURE / m_pt, join_style=2, mitre_limit=5).buffer(-FERMETURE / m_pt, join_style=2, mitre_limit=5)
     DERNIERE_MATIERE[:] = [mat, m_pt]   # pour diag_fuites.py (ou fuit chaque piece, et pourquoi)
     trous = [Polygon(a) for g in getattr(mat, "geoms", [mat]) for a in g.interiors]
     res, reels = [], None
@@ -372,6 +370,14 @@ def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbe
                         if h_.contains(q): vois[j_] += 1; break
                 if vois: break
             if vois: t = [trous[vois.most_common(1)[0][0]]]
+        if FERMETURE:   # 27/11 nuit : fermeture LOCALE (boite autour de l'etiquette) ; sur toute la page = 8 Go -> plantage
+            S_ = e.get("surface_ecrite") or 20.0
+            R_ = max(1.5 * math.sqrt(S_) + 2.0, 4.0) / m_pt
+            loc = mat.intersection(box(p.x - R_, p.y - R_, p.x + R_, p.y + R_))
+            rr = FERMETURE / m_pt
+            loc = loc.buffer(rr, join_style=2, mitre_limit=5).buffer(-rr, join_style=2, mitre_limit=5)
+            t = [Polygon(a_) for g_ in getattr(loc, "geoms", [loc]) if g_.geom_type == "Polygon" for a_ in g_.interiors]
+            t = [h_ for h_ in t if h_.contains(p)]
         if not t: res.append((e, None, None)); continue
         h = min(t, key=lambda h: h.area)
         if FERMETURE and sum(1 for e2 in etq if h.contains(Point(e2["x"], e2["y"]))) != 1:
