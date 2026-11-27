@@ -16,6 +16,7 @@ from metre import lire_textes, etiquettes, echelle_par_cotes, normaliser, origin
 from faces import kasa
 
 
+PORTES_POINTILLES = False   # 27/11 : variante v3 « portes en pointilles » (arcs en tirets reconstitues, compter_pointilles.py)
 PORTE_ANGLE_MIN = 0.7   # rad : ouverture mini d'un arc de porte (27/11 : 36 % des arcs des neufs sont ENTROUVERTS 10-40 deg ;
                         # variante v3 « portes entrouvertes » = 10 deg)
 
@@ -52,6 +53,18 @@ def portes(pl, m_pt, conv):
             if not L: continue
             ux, uy = (e[0] - g[0]) / L, (e[1] - g[1]) / L; pr = 0.05 / m_pt
             out.append(LineString([conv((g[0] - ux * pr, g[1] - uy * pr)), conv((e[0] + ux * pr, e[1] + uy * pr))]))
+    if PORTES_POINTILLES:   # 27/11 (3068854 : quarts de cercle en TIRETS, chaque tiret = une courbe) : arcs reconstitues
+        from compter_pointilles import arcs_pointilles
+        for P in arcs_pointilles(pl, m_pt):
+            cx, cy, r = kasa(P)
+            ang = sorted(math.atan2(p[1] - cy, p[0] - cx) for p in P)
+            trous = [(b - a, i) for i, (a, b) in enumerate(zip(ang, ang[1:]))] + [(ang[0] + 2 * math.pi - ang[-1], len(ang) - 1)]
+            _, i = max(trous)                     # le plus grand trou angulaire = hors de l'arc ; les bouts l'encadrent
+            a_deb, a_fin = ang[(i + 1) % len(ang)], ang[i]
+            for a in (a_deb, a_fin):
+                e = (cx + r * math.cos(a), cy + r * math.sin(a))
+                ux, uy = math.cos(a), math.sin(a); pr = 0.05 / m_pt
+                out.append(LineString([conv((cx - ux * pr, cy - uy * pr)), conv((e[0] + ux * pr, e[1] + uy * pr))]))
     return out
 
 

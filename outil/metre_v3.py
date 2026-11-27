@@ -130,7 +130,8 @@ def _pieces_v3(chemin):
                    ("matiere fenetres en paquet", {"BAIES_PAQUET": True}),  # 26/11 racine Guyane
                    ("matiere sans fonds blancs", {"SANS_BLANC": True}),     # 26/11 racine Briffaut
                    ("matiere murs neutres", {"NEUTRES": True}),           # 27/11 racine 3102902 (couleur = annotation)
-                   ("matiere portes entrouvertes", {"PORTE_ANGLE_MIN": 0.1745}),   # 27/11 : arcs 10-40 deg (36 % des neufs)
+                   # 27/11 « portes entrouvertes » (arcs 10-40 deg) ESSAYE puis retire : 118 -> 118, +150 s
+                   ("matiere portes en pointilles", {"PORTES_POINTILLES": True}),   # 27/11 racine 3068854 (arcs en tirets)
                    # 27/11 « matiere sans cotes » ESSAYE puis retire : +10 sures sur les neufs (118 -> 128) < seuil +21, +100 s
                    # 27/11 : « matiere etiquette proche » ESSAYE puis retire (banc 125 -> 125, aucun gain, +temps)
                    ] + ([("matiere fiche de conventions", {"PAS_MUR": _fiche(chemin)})] if _fiche(chemin) else []) + (

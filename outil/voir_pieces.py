@@ -17,6 +17,7 @@ R = metre_v3.pieces_v3(f)
 sys.stdout.close(); sys.stdout = old
 import matiere
 # matiere de la passe PRINCIPALE (celle qui donne la plupart des pieces) : ce que l'outil a pris pour des murs, en rouge
+if os.environ.get("POINTILLES"): matiere.PORTES_POINTILLES = True   # 27/11 : voir la matiere AVEC les portes en tirets fermees
 old = sys.stdout; sys.stdout = open(os.devnull, "w", encoding="utf-8")
 matiere.pieces_par_matiere(f, verbeux=False)
 sys.stdout.close(); sys.stdout = old
@@ -29,6 +30,9 @@ def rapport(r):
     return r["a"] / r["e"]["surface_ecrite"] if r.get("a") and r["e"].get("surface_ecrite") else None
 
 
+m_pt0 = None
+
+
 choix = []
 for r in R:
     q = rapport(r)
@@ -39,6 +43,12 @@ for r in R:
     if (bande == "presque" and 0.01 < abs(q - 1) <= 0.10) or (bande == "grande" and q > 2) or \
        (bande == "petite" and q < 0.5) or (bande == "sure" and r["sure"]):
         choix.append((q, r))
+if bande == "non":   # 27/11 : pieces NON mesurees (aucun contour ferme) -> case de 6 m autour de l'etiquette
+    from shapely.geometry import Point
+    for r in R:
+        if not r.get("a") and m_pt:
+            r = dict(r); r["h"] = Point(r["e"]["x"], r["e"]["y"]).buffer(1.5 / m_pt); r["a"] = 0.0
+            choix.append((0.0, r))
 choix.sort(key=lambda t: t[0])
 if len(choix) > 12:   # 12 cases reparties sur toute la plage des rapports
     choix = [choix[int(i * (len(choix) - 1) / 11)] for i in range(12)]
@@ -49,6 +59,9 @@ CASE = 600
 planche = Image.new("RGB", (CASE * 4, CASE * math.ceil(max(len(choix), 1) / 4)), "white")
 for i, (q, r) in enumerate(choix):
     x0, y0, x1, y1 = r["h"].bounds
+    if os.environ.get("ZOOM_ETIQ") and m_pt:   # 27/11 : case de 8 m autour de l'etiquette (trous geants = tout l'etage)
+        z = float(os.environ["ZOOM_ETIQ"]) / m_pt
+        x0, y0, x1, y1 = r["e"]["x"] - z, r["e"]["y"] - z, r["e"]["x"] + z, r["e"]["y"] + z
     marge = (1.5 / m_pt) if m_pt else 40
     x0 -= marge; y0 -= marge; x1 += marge; y1 += marge
     cote = max(x1 - x0, y1 - y0); sc = CASE / cote
