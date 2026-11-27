@@ -167,7 +167,11 @@ if sys.argv[1] == "--page":
             "aire_portes_m2": aire_portes.get(i) if isinstance(aire_portes, dict) else None,
             "bord_courbe_m": bord_courbe.get(i) if isinstance(bord_courbe, dict) else None,
             "pourquoi_non_mesuree": pourquoi_non.get(i) if isinstance(pourquoi_non, dict) else None,
-            "apres_fermeture": ferme.get(i) if isinstance(ferme, dict) else None}
+            "apres_fermeture": ferme.get(i) if isinstance(ferme, dict) else None,
+            # 27/11 : identifiant du CONTOUR (boite arrondie au cm) -> « meme trou » exact (la meme surface ne suffit pas :
+            # 548666 a 13 logements identiques et un tableau de cases de meme taille)
+            "trou": ([round(v, 1) for v in r["h"].bounds] if r.get("h") is not None and hasattr(r["h"], "bounds") else None),
+            "x": round(r["e"]["x"], 1), "y": round(r["e"]["y"], 1)}
            for i, r in enumerate(R)]   # detail par piece (pour le livre des pieces, mesure seule)
     json.dump({"page": nom, "pieces": n, "sures": s, "coupees_bord": cb, "secondes": duree, "detail": det,
                "diag_erreur": bord_cote.get("erreur") if isinstance(bord_cote, dict) else None,
