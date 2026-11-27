@@ -34,7 +34,10 @@ if sys.argv[1] == "--page":
         from shapely.geometry import LineString
         from shapely.ops import unary_union
         ch = metre.normaliser(f); m = metre.echelle_par_cotes(ch, 0)[0]
-        cl = metre.LIGNES_COTES.get(os.path.abspath(ch), [])
+        import matiere as _mat   # echelle de secours (etiquettes) : celle du dernier passage de matiere
+        m = m or (_mat.DERNIERE_MATIERE[1] if _mat.DERNIERE_MATIERE else None)
+        from diag_cotes import lignes_de_cote   # 27/11 : instrument v2 (courbes decoupees ; LIGNES_COTES ratait la CAVE 11)
+        cl = lignes_de_cote(ch)
         if m and cl:
             zone = unary_union([LineString([(a, b), (c, d)]) for a, b, c, d in cl]).buffer(0.03 / m)
             for i, r in enumerate(R):

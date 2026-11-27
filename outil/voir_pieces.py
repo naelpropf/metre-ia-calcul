@@ -69,7 +69,13 @@ for i, (q, r) in enumerate(choix):
                 dm.polygon([((px - ox) * sc, (py - oy) * sc) for px, py in t.coords], fill=0)
         im = Image.composite(Image.blend(im, Image.new("RGB", im.size, (255, 0, 0)), 0.45), im, masque)
         dr = ImageDraw.Draw(im, "RGBA")
-    pts =[((px - ox) * sc, (py - oy) * sc) for px, py in r["h"].exterior.coords]
+    if os.environ.get("COTES"):   # 27/11 : lignes de cote detectees (diag_cotes) en BLEU epais
+        from diag_cotes import lignes_de_cote
+        if "_LC" not in globals(): globals()["_LC"] = lignes_de_cote(f)
+        for a, b, c, d_ in _LC:
+            if max(a, c) < x0 or min(a, c) > x1 or max(b, d_) < y0 or min(b, d_) > y1: continue
+            dr.line([((a - ox) * sc, (b - oy) * sc), ((c - ox) * sc, (d_ - oy) * sc)], fill=(0, 60, 255, 255), width=4)
+    pts = [((px - ox) * sc, (py - oy) * sc) for px, py in r["h"].exterior.coords]
     dr.line(pts + [pts[0]], fill=(0, 170, 0, 255), width=3)
     ex, ey = (r["e"]["x"] - ox) * sc, (r["e"]["y"] - oy) * sc
     dr.ellipse([ex - 6, ey - 6, ex + 6, ey + 6], fill=(230, 0, 0, 255))
