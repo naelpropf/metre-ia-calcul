@@ -84,6 +84,35 @@ if sys.argv[1] == "--page":
                         pourquoi_non[i] = "sur la matiere" if MAT5.contains(_Pt(r["e"]["x"], r["e"]["y"])) else "piece ouverte"
     except Exception as ex:
         pourquoi_non = {"erreur": str(ex)[:80]}
+    # 27/11 DIAGNOSTIC 6 (mesure de cause, pas une correction) : matiere de la passe principale FERMEE de 0,6 m (epaissir puis
+    # amincir, angles droits) -> les ouvertures < 1,2 m se bouchent ; pour chaque piece : seule dans son trou ? surface du trou ?
+    ferme = {}
+    try:
+        import matiere as _m6
+        from shapely.geometry import Point as _Pt6, Polygon as _Pg6
+        from shapely.strtree import STRtree as _ST6
+        if not (_m6.DERNIERE_MATIERE and pourquoi_non):   # la passe principale n'a pas ete refaite par le diagnostic 5
+            _o = sys.stdout; sys.stdout = open(os.devnull, "w", encoding="utf-8")
+            try: _m6.pieces_par_matiere(metre.normaliser(f), verbeux=False)
+            finally: sys.stdout.close(); sys.stdout = _o
+        if _m6.DERNIERE_MATIERE:
+            MAT6, m6 = _m6.DERNIERE_MATIERE
+            r6 = 0.6 / m6
+            MATc = MAT6.buffer(r6, join_style=2, mitre_limit=5).buffer(-r6, join_style=2, mitre_limit=5)
+            trous = [_Pg6(a) for g in getattr(MATc, "geoms", [MATc]) for a in g.interiors]
+            arbre = _ST6(trous) if trous else None
+            ou = {}
+            for i, r in enumerate(R):
+                p = _Pt6(r["e"]["x"], r["e"]["y"])
+                t = [j for j in (arbre.query(p) if arbre is not None else []) if trous[j].contains(p)]
+                ou[i] = min(t, key=lambda j: trous[j].area) if t else None
+            compte = {}
+            for j in ou.values():
+                if j is not None: compte[j] = compte.get(j, 0) + 1
+            for i, j in ou.items():
+                ferme[i] = None if j is None else {"seule": compte[j] == 1, "surface": round(trous[j].area * m6 * m6, 2)}
+    except Exception as ex:
+        ferme = {"erreur": str(ex)[:80]}
     n_poteaux = None   # INVALIDE (27/11 : sur 3068854 les poteaux sont 4 TRAITS separes, pas des rectangles) -> desactive
     if False:
         import matiere as _m4, pypdfium2 as _pdf
@@ -104,7 +133,8 @@ if sys.argv[1] == "--page":
             "coupee_bord": bool(r["e"].get("coupee_bord")), "bord_cote_m": bord_cote.get(i) if isinstance(bord_cote, dict) else None,
             "aire_portes_m2": aire_portes.get(i) if isinstance(aire_portes, dict) else None,
             "bord_courbe_m": bord_courbe.get(i) if isinstance(bord_courbe, dict) else None,
-            "pourquoi_non_mesuree": pourquoi_non.get(i) if isinstance(pourquoi_non, dict) else None}
+            "pourquoi_non_mesuree": pourquoi_non.get(i) if isinstance(pourquoi_non, dict) else None,
+            "apres_fermeture": ferme.get(i) if isinstance(ferme, dict) else None}
            for i, r in enumerate(R)]   # detail par piece (pour le livre des pieces, mesure seule)
     json.dump({"page": nom, "pieces": n, "sures": s, "coupees_bord": cb, "secondes": duree, "detail": det,
                "diag_erreur": bord_cote.get("erreur") if isinstance(bord_cote, dict) else None,
