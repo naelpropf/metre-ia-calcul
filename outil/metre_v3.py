@@ -132,7 +132,8 @@ def _pieces_v3(chemin):
                    ("matiere murs neutres", {"NEUTRES": True}),           # 27/11 racine 3102902 (couleur = annotation)
                    # 27/11 « portes entrouvertes » (arcs 10-40 deg) ESSAYE puis retire : 118 -> 118, +150 s
                    # 27/11 « portes en pointilles » SEULE : 118 -> 121 (< +21), +900 s -> retiree ; fuites EN SERIE (poteaux)
-                   ("matiere traits fins + pointilles", {"SEUIL_TRAIT": 0.08, "PORTES_POINTILLES": True}),   # 27/11 combine
+                   # 27/11 « traits fins 0,08 + pointilles » ESSAYE puis retire : +9 sur 59 pages, 1 machine plantee (memoire),
+                   # 11 pages perdues, page max 480 s. A reprendre SEULEMENT sur les pages aux cloisons en traits fins.
                    # 27/11 « matiere sans cotes » ESSAYE puis retire : +10 sures sur les neufs (118 -> 128) < seuil +21, +100 s
                    # 27/11 : « matiere etiquette proche » ESSAYE puis retire (banc 125 -> 125, aucun gain, +temps)
                    ] + ([("matiere fiche de conventions", {"PAS_MUR": _fiche(chemin)})] if _fiche(chemin) else []) + (
