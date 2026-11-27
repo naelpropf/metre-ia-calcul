@@ -190,6 +190,9 @@ if sys.argv[1] == "--page":
             # 27/11 : identifiant du CONTOUR (boite arrondie au cm) -> « meme trou » exact (la meme surface ne suffit pas :
             # 548666 a 13 logements identiques et un tableau de cases de meme taille)
             "trou": ([round(v, 1) for v in r["h"].bounds] if r.get("h") is not None and hasattr(r["h"], "bounds") else None),
+            # 27/11 soir : le CONTOUR lui-meme (points de la page, simplifie a 0,3 pt) -> on dessine les echecs au PC sans recalcul
+            "contour": ([[round(x, 1), round(y, 1)] for x, y in r["h"].simplify(0.3).exterior.coords]
+                        if r.get("h") is not None and getattr(r["h"], "geom_type", "") == "Polygon" else None),
             "x": round(r["e"]["x"], 1), "y": round(r["e"]["y"], 1),
             "mur_en_trop_recuperable": recup.get(i) if isinstance(recup, dict) else None,
             "aire_ouverte_045": ouvert.get(i) if isinstance(ouvert, dict) else None,
