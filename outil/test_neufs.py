@@ -146,6 +146,15 @@ if sys.argv[1] == "--page":
                         if ferme[i] is not None or sf.get(i): ferme[i] = dict(ferme[i] or {"seule": False}, seule_fins=sf.get(i, False))
     except Exception as ex:
         ferme = {"erreur": str(ex)[:80]}
+    # 27/11 DIAGNOSTIC 7 : « mur en trop » (borne basse) -- piece trop petite recuperable en regroupant les trous voisins
+    # separes seulement par un trait (mur_en_trop.py ; matiere de la passe principale du diagnostic 6)
+    recup = {}
+    try:
+        if isinstance(ferme, dict) and "erreur" not in ferme and _m6.DERNIERE_MATIERE:
+            from mur_en_trop import recuperable
+            recup = recuperable(MAT6, m6, [(r["e"]["x"], r["e"]["y"], r["e"].get("surface_ecrite"), r.get("a")) for r in R])
+    except Exception as ex:
+        recup = {"erreur": str(ex)[:80]}
     n_poteaux = None   # INVALIDE (27/11 : sur 3068854 les poteaux sont 4 TRAITS separes, pas des rectangles) -> desactive
     if False:
         import matiere as _m4, pypdfium2 as _pdf
@@ -171,7 +180,8 @@ if sys.argv[1] == "--page":
             # 27/11 : identifiant du CONTOUR (boite arrondie au cm) -> « meme trou » exact (la meme surface ne suffit pas :
             # 548666 a 13 logements identiques et un tableau de cases de meme taille)
             "trou": ([round(v, 1) for v in r["h"].bounds] if r.get("h") is not None and hasattr(r["h"], "bounds") else None),
-            "x": round(r["e"]["x"], 1), "y": round(r["e"]["y"], 1)}
+            "x": round(r["e"]["x"], 1), "y": round(r["e"]["y"], 1),
+            "mur_en_trop_recuperable": recup.get(i) if isinstance(recup, dict) else None}
            for i, r in enumerate(R)]   # detail par piece (pour le livre des pieces, mesure seule)
     json.dump({"page": nom, "pieces": n, "sures": s, "coupees_bord": cb, "secondes": duree, "detail": det,
                "diag_erreur": bord_cote.get("erreur") if isinstance(bord_cote, dict) else None,
