@@ -73,6 +73,12 @@ def _candidat(arg):
     chemin, nom, params, m_force, m_pt, zone_wkb = arg
     import metre, matiere, faces, shapely
     metre.ZONE = shapely.from_wkb(zone_wkb) if zone_wkb else None
+    def _cc(h):   # 27/11 soir (MESURE SEULE) : contour simplifie de la variante, pour dessiner une piece perdue sans recalcul
+        try:
+            g = h if h.geom_type == "Polygon" else max(h.geoms, key=lambda q: q.area)
+            return [[round(x, 1), round(y, 1)] for x, y in g.simplify(0.3).exterior.coords]
+        except Exception:
+            return None
     out = []
     proches = []   # 27/11 D-13 (MESURE SEULE) : pieces que la variante met entre 1 % et 10 % -> score secondaire 3 % / 10 %
     try:
@@ -85,7 +91,7 @@ def _candidat(arg):
                 if a and abs(a / e["surface_ecrite"] - 1) <= SURE:
                     out.append(((round(e["x"], 1), round(e["y"], 1)), a, h, nom))
                 elif a and abs(a / e["surface_ecrite"] - 1) <= PROCHE:
-                    proches.append(((round(e["x"], 1), round(e["y"], 1)), abs(a / e["surface_ecrite"] - 1)))
+                    proches.append(((round(e["x"], 1), round(e["y"], 1)), abs(a / e["surface_ecrite"] - 1), _cc(h)))
         else:
             params = dict(params, CALCUL_DOUTES=False)   # 27/11 : la variante ne garde que la surface (vitesse, meme resultat)
             ancien = {k: getattr(matiere, k) for k in params}
@@ -95,7 +101,7 @@ def _candidat(arg):
                     if a and abs(a / e["surface_ecrite"] - 1) <= SURE:
                         out.append(((round(e["x"], 1), round(e["y"], 1)), a, h, nom))
                     elif a and abs(a / e["surface_ecrite"] - 1) <= PROCHE:
-                        proches.append(((round(e["x"], 1), round(e["y"], 1)), abs(a / e["surface_ecrite"] - 1)))
+                        proches.append(((round(e["x"], 1), round(e["y"], 1)), abs(a / e["surface_ecrite"] - 1), _cc(h)))
             finally:
                 for k, v in ancien.items(): setattr(matiere, k, v)
     except Exception as ex:
@@ -170,11 +176,14 @@ def _pieces_v3(chemin):
         for nom, trouves, proches in resultats:   # ORDRE HISTORIQUE conserve
             for k, a, h, src in trouves:
                 r = res.get(k)
+                if r: r.setdefault("variantes", {})[nom] = {"ecart": round(abs(a / r["e"]["surface_ecrite"] - 1), 4) if a else None}
                 if r and not r["sure"]:
                     r.update({"a": a, "h": h, "source": src, "sure": True})
-            for k, ec in proches:                 # MESURE SEULE (D-13) : ne change ni la surface ni « sure »
+            for k, ec, cc in proches:             # MESURE SEULE (D-13) : ne change ni la surface ni « sure »
                 r = res.get(k)
-                if r: r["meilleur_ecart"] = min(ec, r.get("meilleur_ecart", 9.0))
+                if r:
+                    r["meilleur_ecart"] = min(ec, r.get("meilleur_ecart", 9.0))
+                    r.setdefault("variantes", {})[nom] = {"ecart": round(ec, 4), "contour": cc}   # 27/11 soir : pour dessiner
     import metre as _m; _m.ZONE = None   # les contours pixels (fichiers) ne dependent pas de la zone
     # 3. dernier recours : contours de la methode PIXELS (sorties/v1j), contour approche (+-1-2 cm), marque comme tel
     import json

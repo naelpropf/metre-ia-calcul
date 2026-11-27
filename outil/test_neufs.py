@@ -197,7 +197,9 @@ if sys.argv[1] == "--page":
             "mur_en_trop_recuperable": recup.get(i) if isinstance(recup, dict) else None,
             "aire_ouverte_045": ouvert.get(i) if isinstance(ouvert, dict) else None,
             # 27/11 D-13 (mesure seule) : quelle passe a donne la surface, et meilleur ecart atteint par une variante (< 10 %)
-            "source": r.get("source"), "meilleur_ecart_variantes": r.get("meilleur_ecart")}
+            "source": r.get("source"), "meilleur_ecart_variantes": r.get("meilleur_ecart"),
+            # 27/11 soir (mesure seule) : ecart et contour de CHAQUE variante (< 10 %) -> dessiner une piece perdue sans recalcul
+            "variantes": r.get("variantes")}
            for i, r in enumerate(R)]   # detail par piece (pour le livre des pieces, mesure seule)
     json.dump({"page": nom, "pieces": n, "sures": s, "coupees_bord": cb, "secondes": duree, "detail": det,
                "diag_erreur": bord_cote.get("erreur") if isinstance(bord_cote, dict) else None,
