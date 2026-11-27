@@ -1,0 +1,14 @@
+{
+  "dossier": "3105572",
+  "lu_par": "Claude, 27/11, legende du plan PG02 RdC Pharmacie (Pithiviers)",
+  "source": "legende dessinee sur le plan",
+  "pas_mur": [[1.0, 0.69, 0.39]],
+  "murs": [[0.39, 0.39, 0.39], [0.0, 0.5, 1.0]],
+  "sens": {
+    "gris fonce": "existant (mur)",
+    "bleu": "construction projetee (mur neuf) -- ATTENTION : la couleur est ici un MUR, pas une annotation",
+    "bleu hachure": "reprise du complexe d'etancheite (toiture, annotation) -- meme bleu que les murs, non separable par la couleur seule",
+    "orange clair": "zone EI20 LRI (coupe-feu), annotation"
+  },
+  "minutes": 3
+}

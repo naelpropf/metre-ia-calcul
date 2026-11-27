@@ -1,0 +1,16 @@
+{
+  "dossier": "3094112",
+  "lu_par": "Claude, 27/11, plan 9.0 localisation des cloisons RDC bas (Numericum Sante, Besancon)",
+  "source": "legende en tableaux (doublages / cloisonnements / isolation rapportee) dessinee sur le plan",
+  "pas_mur": [[0.98, 0.84, 0.19], [0.63, 1.0, 0.5], [0.97, 0.6, 0.12]],
+  "murs": [[0.56, 0.0, 0.91], [0.36, 0.4, 0.69], [0.36, 0.85, 0.85], [0.0, 0.65, 0.16], [0.8, 1.0, 0.16], [1.0, 0.06, 0.06],
+           [0.64, 0.0, 0.0], [0.82, 0.61, 0.78]],
+  "sens": {
+    "doublages 1.1.1.x (violet, bleu, turquoise, vert)": "MURS (doublages) -- la couleur est ici un mur",
+    "cloisons 1.2.x (jaune-vert, rouge, bordeaux, rose gaine)": "MURS (cloisons)",
+    "traits plus-values hydrofuge / EI (cyan, rouge, vert, bleu, violet fins)": "parement sur le mur (reste une limite)",
+    "isolation rapportee 1.3.x (hachure jaune, vert clair, orange)": "isolant sous dalle / retombee : annotation, PAS un mur"
+  },
+  "remarque": "legende « mobilier hors marche » (hachure, coin haut droit) non relevee : trop petite pour etre sure",
+  "minutes": 6
+}
