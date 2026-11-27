@@ -85,6 +85,26 @@ def _pas_mur(c):
 
 
 DOUBLE_TRAIT = False # murs dessines en deux traits fins paralleles (convention CAO classique ; plan Scanner)
+CALCUL_DOUTES = True  # 27/11 : les variantes v3 ne gardent que la surface -> elles sautent la mesure « part inventee » (34 s/passe)
+
+# 27/11 (profil 947775 : fusions des murs 41 s + 93 s par passe, refaites a chaque variante) : une fusion deja faite DANS CE
+# programme est reprise si les morceaux sont EXACTEMENT les memes (empreinte des coordonnees binaires, dans l'ordre).
+# Cas typique : une variante sans effet sur la page (pas de fond blanc, pas de couleur vive...). Resultat identique par construction.
+_MEMO = {}
+
+
+def _empreinte(geoms, *extra):
+    import hashlib, shapely
+    h = hashlib.sha1(repr(extra).encode())
+    for b in shapely.to_wkb(np.array(list(geoms), dtype=object)): h.update(b)
+    return h.hexdigest()
+
+
+def _memo(cle, calcul):
+    if cle not in _MEMO:
+        if len(_MEMO) >= 4: _MEMO.clear()
+        _MEMO[cle] = calcul()
+    return _MEMO[cle]
 
 
 def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbeux=True, rendre=False, baies=True, m_force=None):
@@ -252,14 +272,15 @@ def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbe
                 morceaux.append(LineString([a, b]).buffer(DEMI_TRAIT / m_pt, cap_style=2)); n_baies += 1
                 DERNIERES_VITRES.append(LineString([a, b]))
     cordes = portes(pl, m_pt, conv)
-    reels_u = unary_union(morceaux[:n_reels])   # fusion des VRAIS murs calculee UNE fois (27/11 : faite 2 fois avant)
+    reels_u = _memo(_empreinte(morceaux[:n_reels], "reels"), lambda: unary_union(morceaux[:n_reels]))   # fusion des VRAIS murs calculee UNE fois
     DERNIERS_MURS_REELS[:] = [reels_u]   # vrais murs seuls (pour trier vitres / contours)
     morceaux += [c.buffer(DEMI_TRAIT / m_pt, cap_style=2) for c in cordes]
     if IA_MURS:   # 27/11 : l'IA « sens » (apprise sur les autres pages du dossier) ajoute les murs qu'elle reconnait
         from ia_sens import murs_ia
         morceaux += murs_ia(chemin, pl, conv, m_pt, unary_union(morceaux))
     # micro-ecarts du dessin (ex. Repro, 25/11) : on referme les fentes < 2 cm
-    mat = unary_union([reels_u] + morceaux[n_reels:]).buffer(0.01 / m_pt, join_style=2)
+    mat = _memo(_empreinte(morceaux, "mat", m_pt, n_reels),
+                lambda: unary_union([reels_u] + morceaux[n_reels:]).buffer(0.01 / m_pt, join_style=2))
     DERNIERE_MATIERE[:] = [mat, m_pt]   # pour diag_fuites.py (ou fuit chaque piece, et pourquoi)
     trous = [Polygon(a) for g in getattr(mat, "geoms", [mat]) for a in g.interiors]
     res, reels = [], None
@@ -286,15 +307,16 @@ def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbe
         # 27/11 (profil CALIGNAC p5 : 52 s sur 92 dans UN buffer de tous les murs du plan) : on n'epaissit que les murs
         # PROCHES de la piece. Exact : un point du bord est a moins de r d'un mur ssi il l'est d'un mur de la boite
         # elargie de r ; marge 2r pour que les coupes de la boite restent loin du bord.
-        r_ = 0.03 / m_pt
-        x0, y0, x1, y1 = h.bounds
-        reels = reels_u.intersection(box(x0 - 2 * r_, y0 - 2 * r_, x1 + 2 * r_, y1 + 2 * r_)).buffer(r_)
-        bord = h.exterior
-        e["part_inventee"] = round(1 - bord.intersection(reels).length / max(bord.length, 1e-9), 3)
+        if CALCUL_DOUTES:
+            r_ = 0.03 / m_pt
+            x0, y0, x1, y1 = h.bounds
+            reels = reels_u.intersection(box(x0 - 2 * r_, y0 - 2 * r_, x1 + 2 * r_, y1 + 2 * r_)).buffer(r_)
+            bord = h.exterior
+            e["part_inventee"] = round(1 - bord.intersection(reels).length / max(bord.length, 1e-9), 3)
         e["ecart_ecrit_pct"] = round(100 * (a / e["surface_ecrite"] - 1), 2) if e.get("surface_ecrite") else None
         doutes = []
         if e["ecart_ecrit_pct"] is not None and abs(e["ecart_ecrit_pct"]) > 1: doutes.append("écart %+.1f %% avec la surface écrite" % e["ecart_ecrit_pct"])
-        if e["part_inventee"] > 0.25: doutes.append("%d %% du contour fermé artificiellement (porte, fenêtre)" % (100 * e["part_inventee"]))
+        if (e.get("part_inventee") or 0) > 0.25: doutes.append("%d %% du contour fermé artificiellement (porte, fenêtre)" % (100 * e["part_inventee"]))
         if not (0.5 <= a <= 400): doutes.append("taille peu plausible (%.1f m²)" % a)
         e["doutes"] = doutes
         res.append((e, a, h))

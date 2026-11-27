@@ -82,6 +82,7 @@ def _candidat(arg):
                 if a and abs(a / e["surface_ecrite"] - 1) <= SURE:
                     out.append(((round(e["x"], 1), round(e["y"], 1)), a, h, nom))
         else:
+            params = dict(params, CALCUL_DOUTES=False)   # 27/11 : la variante ne garde que la surface (vitesse, meme resultat)
             ancien = {k: getattr(matiere, k) for k in params}
             for k, v in params.items(): setattr(matiere, k, v)
             try:
