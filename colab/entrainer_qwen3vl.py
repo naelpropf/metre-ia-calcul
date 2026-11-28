@@ -83,7 +83,29 @@ def surface_ecrite(f):
 # exercice par sujet : tout (l'ancien, plan + contour), etiquette (ou est-elle), murs (lesquels entourent la piece),
 # tri (mur / objet interieur / cote), contour (murs donnes -> fermer le contour). SUJETS=murs,tri = melange de deux.
 SUJETS = os.environ.get("SUJETS", "tout").split(",")
-FIN = {"tout": "Contour", "etiquette": "ETIQUETTE", "murs": "MURS", "tri": "COTES", "contour": "Contour"}
+FIN = {"tout": "Contour", "etiquette": "ETIQUETTE", "murs": "MURS", "tri": "COTES", "contour": "Contour", "tri_visuel": None}
+# 28/11 matin : l'IA ne sait pas ecrire des coordonnees (etiquette 0/16 base, 1/16 entrainee) -> « tri_visuel » : les traits
+# sont DESSINES en couleur et numerotes sur l'image (methode « set of marks ») ; l'IA dit seulement MUR / OBJET / COTE.
+COULEURS = [(230, 25, 75), (60, 180, 75), (0, 130, 200), (245, 130, 48), (145, 30, 180), (240, 50, 230)]
+
+
+def marques(f):
+    p = f["pensee"]; r = random.Random(f["image"] + "tv")
+    def pris(L, k):
+        L = [t for t in L if isinstance(t, list) and len(t) >= 4]; r.shuffle(L); return L[:k]
+    T = [(t, "MUR") for t in pris(p.get("murs", []), 2)] + [(t, "OBJET") for t in pris(p.get("exclus", []), 2)] + \
+        [(t, "COTE") for t in pris(p.get("cotes", []), 2)]
+    r.shuffle(T); return T
+
+
+def dessiner(im, T):
+    from PIL import ImageDraw
+    im = im.copy(); d = ImageDraw.Draw(im); W, H = im.size
+    for i, (t, _) in enumerate(T):
+        x0, y0, x1, y1 = t[0] * W / 1000, t[1] * H / 1000, t[2] * W / 1000, t[3] * H / 1000; c = COULEURS[i % 6]
+        d.line([x0, y0, x1, y1], fill=c, width=4); mx, my = (x0 + x1) / 2, (y0 + y1) / 2
+        d.rectangle([mx - 8, my - 9, mx + 8, my + 9], fill=c); d.text((mx - 3, my - 6), str(i + 1), fill=(255, 255, 255))
+    return im
 
 
 def nom(f):
@@ -101,6 +123,8 @@ def valable(f, s):
     if s == "etiquette": return bool(p.get("etiquette"))
     if s == "murs": return bool(p.get("murs")) and bool(p.get("etiquette"))
     if s == "tri": return len(traits_tri(f)) >= 2 if p else False
+    if s == "tri_visuel":
+        T = marques(f) if p else []; return len(T) >= 2 and any(e != "MUR" for _, e in T)
     if s == "contour": return bool(p.get("murs")) and len(points(f.get("contour") or liste_apres(f["reponse"], "Contour") or [])) >= 3
     return False
 
@@ -124,6 +148,12 @@ def exemple(f, s):
              % (nom(f), " ; ".join("%d : %s" % (i, json.dumps(t)) for i, (t, _) in enumerate(T))))
         c = " ; ".join("%sS : %s" % (k, json.dumps([i for i, (_, e) in enumerate(T) if e == k])) for k in ("MUR", "OBJET", "COTE"))
         return q, c
+    if s == "tri_visuel":
+        T = marques(f)
+        return (tete + "Sur l'image, %d traits sont surlignes en couleur et numerotes (1 a %d) ; la piece « %s » est autour. "
+                "Pour chaque trait numerote, dis si c'est un MUR, un OBJET a l'interieur (mobilier, equipement) ou une ligne "
+                "de COTE. Reponds : 1 : MUR ; 2 : OBJET ; ..." % (len(T), len(T), nom(f)),
+                " ; ".join("%d : %s" % (i + 1, e) for i, (_, e) in enumerate(T)))
     if s == "contour":
         c = points(f.get("contour") or liste_apres(f["reponse"], "Contour"))
         return (tete + "La piece « %s » (%.2f m2 ecrits), etiquette en %s. Ses murs (x0, y0, x1, y1) : %s ; portes a fermer "
@@ -164,6 +194,11 @@ def noter(f, s, rep):
         q = sum(any(meme_trait(u, t) for t in p["murs"]) for u in sien) / len(sien)
         F1 = 2 * r * q / (r + q) if r + q else 0.0
         return F1, F1 >= 0.8
+    if s == "tri_visuel":
+        T = marques(f); dit = {}
+        for i, e in re.findall(r"(\d+)\s*:\s*(MUR|OBJET|COTE)", rep): dit.setdefault(int(i) - 1, e)
+        bon = sum(dit.get(i) == e for i, (_, e) in enumerate(T)) / len(T)
+        return bon, bon == 1.0
     if s == "tri":
         T = traits_tri(f); dit = {}
         for k in ("MUR", "OBJET", "COTE"):
@@ -197,6 +232,7 @@ else:
 
 def msg(f, s="tout", avec_reponse=True):
     im = Image.open(os.path.join(BASE, f["image"])).convert("RGB"); q, c = exemple(f, s)
+    if s == "tri_visuel": im = dessiner(im, marques(f))
     m = [{"role": "user", "content": [{"type": "text", "text": q}, {"type": "image", "image": im}]}]
     if avec_reponse: m.append({"role": "assistant", "content": [{"type": "text", "text": c}]})
     return {"messages": m}
@@ -247,13 +283,14 @@ for s in os.environ.get("EXAMEN_SUJETS", ",".join(SUJETS)).split(","):
     n_ok = 0; notes = []
     for f in [g for g in exa if valable(g, s)][:N_EXA]:
         im = Image.open(os.path.join(BASE, f["image"])).convert("RGB"); q, _ = exemple(f, s)
+        if s == "tri_visuel": im = dessiner(im, marques(f))
         m = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": q}]}]
         txt = tok.apply_chat_template(m, add_generation_prompt=True)
         x = tok(im, txt, add_special_tokens=False, return_tensors="pt").to("cuda")
         arret = ArretListe(x["input_ids"].shape[1], FIN[s], "REPONSE" if s == "tout" else None)
-        out = model.generate(**x, max_new_tokens=900 if s in ("tout", "contour") else 400, use_cache=True, do_sample=False,
+        out = model.generate(**x, max_new_tokens=900 if s in ("tout", "contour") else (80 if s == "tri_visuel" else 400), use_cache=True, do_sample=False,
                              repetition_penalty=1.05, no_repeat_ngram_size=12,
-                             stopping_criteria=StoppingCriteriaList([arret]) if os.environ.get("ARRET_CONTOUR", "1") == "1" else None)
+                             stopping_criteria=StoppingCriteriaList([arret]) if FIN[s] and os.environ.get("ARRET_CONTOUR", "1") == "1" else None)
         rep = tok.decode(out[0][x["input_ids"].shape[1]:], skip_special_tokens=True)
         note, juste = noter(f, s, rep); n_ok += juste; notes.append(note)
         res.append({"sujet": s, "image": f["image"], "legende": f["legende"], "question": q, "reponse": rep,

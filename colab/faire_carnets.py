@@ -14,7 +14,9 @@ RUNS = {  # nom : (SUJETS, PAS)
     "specialiste_contour": ("contour", 300),
     "melange_4_sujets": (TOUS, 1200),
     "base_etiquette": ("etiquette", 0),
-    "tout_v3": ("tout", 300),   # l'ancien exercice entier (plan + contour), relance de la v3 coupee a 03 h 28   # PAS=0 : modele de BASE sans entrainement (EXAMEN_SEUL)
+    "tout_v3": ("tout", 300),
+    "specialiste_tri_visuel": ("tri_visuel", 300),   # 28/11 : traits dessines et numerotes, l'IA dit MUR / OBJET / COTE
+    "base_tri_visuel": ("tri_visuel", 0),   # l'ancien exercice entier (plan + contour), relance de la v3 coupee a 03 h 28   # PAS=0 : modele de BASE sans entrainement (EXAMEN_SEUL)
 }
 PREP = "\n".join([
     "!nvidia-smi -L",
@@ -33,7 +35,7 @@ def cellule(src):
 for nom, (sujets, pas) in RUNS.items():
     seul = "EXAMEN_SEUL=unsloth/Qwen3-VL-2B-Instruct-unsloth-bnb-4bit " if pas == 0 else ""
     lance = ("!cd /content && %sSUJETS=%s PAS=%d DOSSIER_EXAMEN=696398 EXAMEN_SUJETS=%s ENTREE=/content SORTIE=/content/sortie_%s "
-             "python depot/colab/entrainer_qwen3vl.py 2>&1 | tee /content/run.log" % (seul, sujets, pas, "etiquette,tri" if pas == 0 else ("tout" if sujets == "tout" else TOUS), nom))
+             "python depot/colab/entrainer_qwen3vl.py 2>&1 | tee /content/run.log" % (seul, sujets, pas, sujets if (pas == 0 or sujets in ("tout", "tri_visuel")) else TOUS, nom))
     nb = {"nbformat": 4, "nbformat_minor": 0,
           "metadata": {"accelerator": "GPU", "colab": {"provenance": [], "gpuType": "T4"},
                        "kernelspec": {"name": "python3", "display_name": "Python 3"}, "language_info": {"name": "python"}},
