@@ -13,6 +13,7 @@ RUNS = {  # nom : (SUJETS, PAS)
     "specialiste_tri": ("tri", 300),
     "specialiste_contour": ("contour", 300),
     "melange_4_sujets": (TOUS, 1200),
+    "base_etiquette": ("etiquette", 0),   # PAS=0 : modele de BASE sans entrainement (EXAMEN_SEUL)
 }
 PREP = "\n".join([
     "!nvidia-smi -L",
@@ -29,8 +30,9 @@ def cellule(src):
 
 
 for nom, (sujets, pas) in RUNS.items():
-    lance = ("!cd /content && SUJETS=%s PAS=%d DOSSIER_EXAMEN=696398 EXAMEN_SUJETS=%s ENTREE=/content SORTIE=/content/sortie_%s "
-             "python depot/colab/entrainer_qwen3vl.py 2>&1 | tee /content/run.log" % (sujets, pas, TOUS, nom))
+    seul = "EXAMEN_SEUL=unsloth/Qwen3-VL-2B-Instruct-unsloth-bnb-4bit " if pas == 0 else ""
+    lance = ("!cd /content && %sSUJETS=%s PAS=%d DOSSIER_EXAMEN=696398 EXAMEN_SUJETS=%s ENTREE=/content SORTIE=/content/sortie_%s "
+             "python depot/colab/entrainer_qwen3vl.py 2>&1 | tee /content/run.log" % (seul, sujets, pas, "etiquette,tri" if pas == 0 else TOUS, nom))
     nb = {"nbformat": 4, "nbformat_minor": 0,
           "metadata": {"accelerator": "GPU", "colab": {"provenance": [], "gpuType": "T4"},
                        "kernelspec": {"name": "python3", "display_name": "Python 3"}, "language_info": {"name": "python"}},
