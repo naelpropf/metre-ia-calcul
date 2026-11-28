@@ -1,0 +1,3 @@
+611817_DCE_Plans_d_Architectes_SV_pdf_p4                objets  12719 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 10 s
+611817_DCE_Plans_d_Architectes_SV_pdf_p4           0 piece sure
+FIN fiches 0

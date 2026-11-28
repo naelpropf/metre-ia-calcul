@@ -1,0 +1,3 @@
+244795_A03_DCE_MOREAC_plan_de_rdc_pdf_p1                objets 194156 | limite    49 | pas limite    719 | pieces sures : matiere 1, faces 1, pixels 0 | 279 s
+244795_A03_DCE_MOREAC_plan_de_rdc_pdf_p1           fiches   5 (objets oui) | total 5
+FIN fiches 5

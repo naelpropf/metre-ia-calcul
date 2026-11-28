@@ -1,0 +1,3 @@
+611947_10_2_RDC__signalétique_entrée_pdf_p1             objets  56762 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 52 s
+611947_10_2_RDC__signalétique_entrée_pdf_p1        fiches   2 (objets oui) | total 2
+FIN fiches 2

@@ -1,0 +1,3 @@
+611947_09_3_RDC__menuiseries_intérieures_pdf_p1         objets 692664 | limite   776 | pas limite 212200 | pieces sures : matiere 20, faces 0, pixels 0 | 395 s
+611947_09_3_RDC__menuiseries_intérieures_pdf_p1    fiches  29 (objets oui) | total 29
+FIN fiches 29

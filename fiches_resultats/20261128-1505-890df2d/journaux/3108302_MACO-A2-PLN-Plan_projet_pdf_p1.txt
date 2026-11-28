@@ -1,0 +1,3 @@
+3108302_MACO-A2-PLN-Plan_projet_pdf_p1                  objets  80505 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 52 s
+3108302_MACO-A2-PLN-Plan_projet_pdf_p1             0 piece sure
+FIN fiches 0

@@ -1,0 +1,3 @@
+244366_C03a_-_Plan_RDC_pdf_p1                           objets 129138 | limite   210 | pas limite   1390 | pieces sures : matiere 2, faces 0, pixels 0 | 93 s
+244366_C03a_-_Plan_RDC_pdf_p1                      fiches   6 (objets oui) | total 6
+FIN fiches 6

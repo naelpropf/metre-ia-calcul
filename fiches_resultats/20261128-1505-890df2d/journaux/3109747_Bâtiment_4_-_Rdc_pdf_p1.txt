@@ -1,0 +1,3 @@
+3109747_Bâtiment_4_-_Rdc_pdf_p1                         objets  31495 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 21 s
+3109747_Bâtiment_4_-_Rdc_pdf_p1                    0 piece sure
+FIN fiches 0

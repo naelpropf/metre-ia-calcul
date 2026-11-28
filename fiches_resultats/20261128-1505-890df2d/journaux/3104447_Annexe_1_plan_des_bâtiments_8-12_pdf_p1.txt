@@ -1,0 +1,3 @@
+3104447_Annexe_1_plan_des_bâtiments_8-12_pdf_p1         objets  12447 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 5 s
+3104447_Annexe_1_plan_des_bâtiments_8-12_pdf_p1    0 piece sure
+FIN fiches 0

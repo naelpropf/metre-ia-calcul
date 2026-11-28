@@ -1,0 +1,3 @@
+3098242_26_04_ERI_-_DISP_DIJON_-_GARAGE_ERIS_-_100_-_PR objets  45649 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 24 s
+3098242_26_04_ERI_-_DISP_DIJON_-_GARAGE_ERIS_-_100 0 piece sure
+FIN fiches 0

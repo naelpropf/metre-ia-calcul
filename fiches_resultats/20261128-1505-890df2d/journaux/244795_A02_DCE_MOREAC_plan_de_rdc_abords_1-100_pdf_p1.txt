@@ -1,0 +1,3 @@
+244795_A02_DCE_MOREAC_plan_de_rdc_abords_1-100_pdf_p1   objets 179076 | limite    16 | pas limite     27 | pieces sures : matiere 1, faces 1, pixels 0 | 230 s
+244795_A02_DCE_MOREAC_plan_de_rdc_abords_1-100_pdf fiches   5 (objets oui) | total 5
+FIN fiches 5

@@ -1,0 +1,4 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 5.2 m, ecrit 1/200 -> 237.8 m
+589123_G05_A0200_Plan_des_arrets_de_materiaux_pdf_p1    objets 120620 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 43 s
+589123_G05_A0200_Plan_des_arrets_de_materiaux_pdf_ fiches   3 (objets oui) | total 3
+FIN fiches 3

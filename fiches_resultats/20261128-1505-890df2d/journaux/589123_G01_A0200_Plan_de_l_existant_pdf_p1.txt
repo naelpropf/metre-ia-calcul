@@ -1,0 +1,4 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 8.4 m, ecrit 1/200 -> 237.8 m
+589123_G01_A0200_Plan_de_l_existant_pdf_p1              objets  94140 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 33 s
+589123_G01_A0200_Plan_de_l_existant_pdf_p1         fiches   3 (objets oui) | total 3
+FIN fiches 3

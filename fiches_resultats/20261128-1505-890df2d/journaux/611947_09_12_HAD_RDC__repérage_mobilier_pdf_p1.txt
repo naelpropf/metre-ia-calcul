@@ -1,0 +1,3 @@
+611947_09_12_HAD_RDC__repérage_mobilier_pdf_p1          objets 194994 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 100 s
+611947_09_12_HAD_RDC__repérage_mobilier_pdf_p1     0 piece sure
+FIN fiches 0

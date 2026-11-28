@@ -1,0 +1,3 @@
+519830_Plans_et_documents_graphiques_pdf_p6             objets 180787 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 44 s
+519830_Plans_et_documents_graphiques_pdf_p6        0 piece sure
+FIN fiches 0

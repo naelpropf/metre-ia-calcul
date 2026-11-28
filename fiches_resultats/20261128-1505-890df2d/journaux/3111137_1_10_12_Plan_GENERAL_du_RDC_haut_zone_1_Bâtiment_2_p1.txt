@@ -1,0 +1,4 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 6.6 m, ecrit 1/100 -> 130.0 m
+3111137_1_10_12_Plan_GENERAL_du_RDC_haut_zone_1_Bâtimen objets 720671 | limite  3621 | pas limite   5130 | pieces sures : matiere 9, faces 0, pixels 0 | 1106 s
+3111137_1_10_12_Plan_GENERAL_du_RDC_haut_zone_1_Bâ fiches  30 (objets oui) | total 30
+FIN fiches 30

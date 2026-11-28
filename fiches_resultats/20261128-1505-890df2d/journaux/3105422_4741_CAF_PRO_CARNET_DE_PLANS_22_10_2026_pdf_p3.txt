@@ -1,0 +1,4 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 3.3 m, ecrit 1/100 -> 59.4 m
+3105422_4741_CAF_PRO_CARNET_DE_PLANS_22_10_2026_pdf_p3  objets  31415 | limite     7 | pas limite      0 | pieces sures : matiere 1, faces 0, pixels 0 | 18 s
+3105422_4741_CAF_PRO_CARNET_DE_PLANS_22_10_2026_pd fiches   3 (objets oui) | total 3
+FIN fiches 3

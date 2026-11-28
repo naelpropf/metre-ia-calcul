@@ -1,0 +1,3 @@
+244366_C05a_-_Plan_R_2_pdf_p1                           objets 229135 | limite   135 | pas limite   4372 | pieces sures : matiere 4, faces 0, pixels 0 | 131 s
+244366_C05a_-_Plan_R_2_pdf_p1                      fiches   4 (objets oui) | total 4
+FIN fiches 4

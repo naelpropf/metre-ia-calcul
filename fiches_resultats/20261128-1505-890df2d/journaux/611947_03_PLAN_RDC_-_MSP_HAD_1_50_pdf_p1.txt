@@ -1,0 +1,3 @@
+611947_03_PLAN_RDC_-_MSP_HAD_1_50_pdf_p1                objets 727491 | limite   738 | pas limite 198143 | pieces sures : matiere 18, faces 0, pixels 0 | 442 s
+611947_03_PLAN_RDC_-_MSP_HAD_1_50_pdf_p1           fiches  24 (objets oui) | total 24
+FIN fiches 24

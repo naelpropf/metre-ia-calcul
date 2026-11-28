@@ -1,0 +1,2 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 6.6 m, ecrit 1/100 -> 130.0 m
+3111137_1_10_11_Plan_GENERAL_du_RDC_bas_zone_1_Bâtiment objets 425381 | limite   195 | pas limite   1188 | pieces sures : matiere 6, faces 0, pixels 0 | 1178 s

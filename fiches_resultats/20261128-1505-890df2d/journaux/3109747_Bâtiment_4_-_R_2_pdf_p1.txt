@@ -1,0 +1,3 @@
+3109747_Bâtiment_4_-_R_2_pdf_p1                         objets  84990 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 232 s
+3109747_Bâtiment_4_-_R_2_pdf_p1                    fiches   1 (objets oui) | total 1
+FIN fiches 1

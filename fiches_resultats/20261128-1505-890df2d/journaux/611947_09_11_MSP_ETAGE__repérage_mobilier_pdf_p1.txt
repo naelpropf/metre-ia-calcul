@@ -1,0 +1,3 @@
+611947_09_11_MSP_ETAGE__repérage_mobilier_pdf_p1        objets  53661 | limite   118 | pas limite    570 | pieces sures : matiere 1, faces 0, pixels 0 | 48 s
+611947_09_11_MSP_ETAGE__repérage_mobilier_pdf_p1   fiches   1 (objets oui) | total 1
+FIN fiches 1

@@ -1,0 +1,3 @@
+611817_DCE_plans_d_Architecte_MFT_pdf_p5                objets 120829 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 1007 s
+611817_DCE_plans_d_Architecte_MFT_pdf_p5           0 piece sure
+FIN fiches 0

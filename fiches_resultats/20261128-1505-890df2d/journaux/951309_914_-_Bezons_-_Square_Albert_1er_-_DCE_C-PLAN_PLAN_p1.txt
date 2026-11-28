@@ -1,0 +1,4 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 7.1 m, ecrit 1/150 -> 178.3 m
+951309_914_-_Bezons_-_Square_Albert_1er_-_DCE_C-PLAN_PL objets 359199 | limite   159 | pas limite   2778 | pieces sures : matiere 3, faces 0, pixels 0 | 424 s
+951309_914_-_Bezons_-_Square_Albert_1er_-_DCE_C-PL fiches  46 (objets oui) | total 46
+FIN fiches 46

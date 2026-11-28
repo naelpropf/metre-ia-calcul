@@ -1,0 +1,3 @@
+3111137_1_10_14A_Plan_du_RDC_bas_zone_1_Bâtiment_1_état objets 447546 | limite   161 | pas limite   2099 | pieces sures : matiere 6, faces 0, pixels 0 | 1210 s
+3111137_1_10_14A_Plan_du_RDC_bas_zone_1_Bâtiment_1 fiches  14 (objets oui) | total 14
+FIN fiches 14

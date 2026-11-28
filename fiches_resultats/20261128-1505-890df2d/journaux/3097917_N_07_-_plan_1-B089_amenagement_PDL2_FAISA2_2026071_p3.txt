@@ -1,0 +1,4 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 0.5 m, ecrit 1/50 -> 21.0 m
+3097917_N_07_-_plan_1-B089_amenagement_PDL2_FAISA2_2026 objets  15951 | limite    25 | pas limite     20 | pieces sures : matiere 1, faces 0, pixels 0 | 7 s
+3097917_N_07_-_plan_1-B089_amenagement_PDL2_FAISA2 fiches   1 (objets oui) | total 1
+FIN fiches 1

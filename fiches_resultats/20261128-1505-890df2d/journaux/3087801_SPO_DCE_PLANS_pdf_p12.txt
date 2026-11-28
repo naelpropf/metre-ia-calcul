@@ -1,0 +1,3 @@
+3087801_SPO_DCE_PLANS_pdf_p12                           objets   9962 | limite    15 | pas limite    104 | pieces sures : matiere 1, faces 0, pixels 0 | 7 s
+3087801_SPO_DCE_PLANS_pdf_p12                      fiches   3 (objets oui) | total 3
+FIN fiches 3

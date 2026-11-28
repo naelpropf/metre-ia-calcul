@@ -1,0 +1,4 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 14.1 m, ecrit 1/50 -> 14.9 m
+3098242_26_02_100_-_Plan_Garage_ERIS_de_DIJON-ELE-DCE-B objets  32230 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 17 s
+3098242_26_02_100_-_Plan_Garage_ERIS_de_DIJON-ELE- 0 piece sure
+FIN fiches 0

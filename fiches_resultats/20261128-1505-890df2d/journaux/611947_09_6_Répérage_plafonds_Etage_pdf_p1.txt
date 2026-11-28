@@ -1,0 +1,7 @@
+611947_09_6_Répérage_plafonds_Etage_pdf_p1              objets  81845 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 39 s
+611947_09_6_Répérage_plafonds_Etage_pdf_p1         0 piece sure
+FIN fiches 0
+/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/shapely/constructive.py:245: RuntimeWarning: divide by zero encountered in buffer
+  return lib.buffer(
+/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/shapely/constructive.py:245: RuntimeWarning: invalid value encountered in buffer
+  return lib.buffer(

@@ -1,0 +1,4 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 0.9 m, ecrit 1/50 -> 50.0 m
+3098342_INT01_-_RDC_pdf_p1                              objets  18802 | limite    13 | pas limite     19 | pieces sures : matiere 1, faces 0, pixels 0 | 19 s
+3098342_INT01_-_RDC_pdf_p1                         fiches   5 (objets oui) | total 5
+FIN fiches 5

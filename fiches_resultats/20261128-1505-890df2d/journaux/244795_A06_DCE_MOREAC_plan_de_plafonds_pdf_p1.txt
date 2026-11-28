@@ -1,0 +1,3 @@
+244795_A06_DCE_MOREAC_plan_de_plafonds_pdf_p1           objets  52540 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 85 s
+244795_A06_DCE_MOREAC_plan_de_plafonds_pdf_p1      0 piece sure
+FIN fiches 0

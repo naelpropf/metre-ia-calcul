@@ -1,0 +1,4 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 7.3 m, ecrit 1/50 -> 59.4 m
+3111137_1_10_15_Plan_du_RDC_bas_zone_1_Vide_sanitaire_b objets 210126 | limite   113 | pas limite   2224 | pieces sures : matiere 4, faces 0, pixels 0 | 461 s
+3111137_1_10_15_Plan_du_RDC_bas_zone_1_Vide_sanita fiches  11 (objets oui) | total 11
+FIN fiches 11

@@ -1,0 +1,3 @@
+3096757_PDZ_V4_-_La_Rotonde_UCA_R_2_-_R_4_ZD_pdf_p1     objets  39223 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 14 s
+3096757_PDZ_V4_-_La_Rotonde_UCA_R_2_-_R_4_ZD_pdf_p 0 piece sure
+FIN fiches 0

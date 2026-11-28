@@ -1,0 +1,3 @@
+3111137_1_10_23_Plan_finitions_-_MURS_pdf_p1            objets 133946 | limite   238 | pas limite   3708 | pieces sures : matiere 11, faces 0, pixels 0 | 491 s
+3111137_1_10_23_Plan_finitions_-_MURS_pdf_p1       fiches  33 (objets oui) | total 33
+FIN fiches 33
