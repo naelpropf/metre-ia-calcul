@@ -21,12 +21,35 @@ PORTE_ANGLE_MIN = 0.7   # rad : ouverture mini d'un arc de porte (27/11 : 36 % d
                         # variante v3 « portes entrouvertes » = 10 deg)
 
 
-def portes(pl, m_pt, conv):
-    """cordes gond -> bouts, pour chaque arc de porte (voir faces.py : Kasa si >= 5 points, sinon angle droit)."""
+VANTAUX = False   # 28/11 (548666 : chambres -2,5 %, degagements +8 %) : battant dessine OUVERT en rectangle epais = pris pour
+                  # un mur -> la piece se ferme sur le battant, pas au seuil. Variante : battant ecarte, porte fermee au seuil.
+_ARCS_BATTANT = set()    # arcs rattaches a un battant : leurs cordes ordinaires ne sont PAS ajoutees
+_CORDES_BATTANT = []     # cordes gond -> seuil des portes a battant (porte fermee au seuil)
+RADIATEURS = False  # 28/11 (548666 CH.2 : encoche 0,80 x 0,12 m sous la fenetre = radiateur dessine en traits de mur 0,51 + zigzag)
+
+
+def zones_radiateurs(pl, m_pt):
+    """Symbole radiateur / convecteur : un ZIGZAG (polyligne >= 8 points, longueur >= 2 x sa grande dimension) dans un
+    rectangle fin (0,3-2 m sur <= 0,30 m). Rend les boites (elargies de 3 cm) ou les traits ne sont PAS des murs."""
+    zones = []
+    for o in pl.curves + pl.lines:
+        q = o.get("pts") or []
+        if len(q) < 8: continue
+        xs = [p[0] for p in q]; ys = [p[1] for p in q]
+        L_, l_ = max(max(xs) - min(xs), max(ys) - min(ys)) * m_pt, min(max(xs) - min(xs), max(ys) - min(ys)) * m_pt
+        if not (0.3 <= L_ <= 2.0 and 0.02 <= l_ <= 0.30): continue
+        lg = sum(math.dist(q[i], q[i + 1]) for i in range(len(q) - 1)) * m_pt
+        if lg < 2 * L_: continue
+        d = 0.03 / m_pt
+        zones.append(box(min(xs) - d, min(ys) - d, max(xs) + d, max(ys) + d))
+    return zones
+
+
+def _arcs_porte(pl, m_pt):
+    """(gond, bout1, bout2, arc) pour chaque arc de porte (voir faces.py : Kasa si >= 5 points, sinon angle droit)."""
     from scipy.spatial import cKDTree
     tous = [p for o in pl.lines + pl.rects + pl.curves for p in (o.get("pts") or [])]
     arbre = cKDTree(np.asarray(tous, float)) if tous else None
-    out = []
     for c in pl.curves:
         pts = c.get("pts") or []
         if len(pts) < 2 or c.get("fill"): continue
@@ -48,7 +71,54 @@ def portes(pl, m_pt, conv):
                 v = [len(arbre.query_ball_point(q, 0.10 / m_pt)) for q in cands]
                 if v[0] != v[1]: g = cands[0] if v[0] > v[1] else cands[1]
         if g is None: continue
-        for e in (pts[0], pts[-1]):
+        yield g, pts[0], pts[-1], c
+
+
+def vantaux(pl, m_pt):
+    """BATTANTS DESSINES (28/11, 548666) : rectangle fin (<= 8 cm) de 0,55 a 1,3 m = battant ; un arc (courbe, meme reduite a
+    2 points, meme entrouvert) touche un de ses petits bouts (6 cm). Gond = l'autre petit bout ; seuil = l'autre bout de l'arc,
+    a ~1 rayon du gond (+-20 %). Rend (objets battants a ecarter, arcs traites, cordes gond -> seuil)."""
+    from scipy.spatial import cKDTree
+    from shapely.geometry import MultiPoint
+    bouts, arcs_ = [], []
+    for c in pl.curves:
+        q = c.get("pts") or []
+        if len(q) >= 2 and not c.get("fill"):
+            arcs_.append(c); bouts += [(q[0], len(arcs_) - 1, 0), (q[-1], len(arcs_) - 1, 1)]
+    if not bouts: return set(), set(), []
+    arbre = cKDTree(np.asarray([b[0] for b in bouts], float))
+    ids, faits, cordes = set(), set(), []
+    for o in pl.curves + pl.rects:
+        q = o.get("pts") or []
+        if not (4 <= len(q) <= 6): continue
+        r = MultiPoint(q).minimum_rotated_rectangle
+        if r.geom_type != "Polygon": continue
+        c = list(r.exterior.coords)[:4]
+        l1 = math.dist(c[0], c[1]); l2 = math.dist(c[1], c[2])
+        L, w = max(l1, l2), min(l1, l2)
+        if not (0.55 <= L * m_pt <= 1.3 and w * m_pt <= 0.08): continue
+        if l1 >= l2: A = ((c[1][0] + c[2][0]) / 2, (c[1][1] + c[2][1]) / 2); B = ((c[3][0] + c[0][0]) / 2, (c[3][1] + c[0][1]) / 2)
+        else: A = ((c[0][0] + c[1][0]) / 2, (c[0][1] + c[1][1]) / 2); B = ((c[2][0] + c[3][0]) / 2, (c[2][1] + c[3][1]) / 2)
+        for X, H in ((A, B), (B, A)):
+            for j in arbre.query_ball_point(X, 0.06 / m_pt):
+                _, k, cote = bouts[j]
+                if arcs_[k] is o or k in faits: continue
+                qa = arcs_[k]["pts"]; seuil = qa[-1] if cote == 0 else qa[0]
+                if abs(math.dist(H, seuil) / L - 1) <= 0.20:
+                    ids.add(id(o)); faits.add(k); cordes.append((H, seuil)); break
+            else:
+                continue
+            break
+    return ids, {id(arcs_[k]) for k in faits}, cordes
+
+
+def portes(pl, m_pt, conv):
+    """cordes gond -> bouts, pour chaque arc de porte (voir faces.py : Kasa si >= 5 points, sinon angle droit)."""
+    out = []
+    cordes = [(g, e) for g, d1, d2, c in _arcs_porte(pl, m_pt) if not (VANTAUX and id(c) in _ARCS_BATTANT) for e in (d1, d2)]
+    if VANTAUX: cordes += _CORDES_BATTANT
+    for g, e in cordes:
+        if True:
             L = math.hypot(e[0] - g[0], e[1] - g[1])
             if not L: continue
             ux, uy = (e[0] - g[0]) / L, (e[1] - g[1]) / L; pr = 0.05 / m_pt
@@ -104,6 +174,7 @@ def _pas_mur(c):
 DOUBLE_TRAIT = False # murs dessines en deux traits fins paralleles (convention CAO classique ; plan Scanner)
 LONG_DT_SERRE = 2.0  # m : sous 5 cm d'ecart, les deux traits doivent faire au moins 2 m (v2 « double trait serre »)
 ECART_MIN_DT = 0.05  # m ; 27/11 soir (3068854 : facade vitree = 2 longs traits bleus fins a 3 cm) : variante « double trait serre » a 0,01
+DT_SANS_HACHURE = False  # 28/11 : sous 5 cm, garder une paire SEULEMENT si chacun des 2 traits n'a qu'UN voisin serre (une hachure en a 2+)
 SANS_COTES = False    # 27/11 (548666 : chaines de cotes = courbes epaisses prises pour des murs) : variante v3 qui retire
                       # de la matiere les traits/courbes qui PORTENT un chiffre de cote (diag_cotes.ids_objets_de_cote)
 CALCUL_DOUTES = True  # 27/11 : les variantes v3 ne gardent que la surface -> elles sautent la mesure « part inventee » (34 s/passe)
@@ -202,8 +273,22 @@ def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbe
     if SANS_COTES:
         from diag_cotes import ids_objets_de_cote
         ids_cotes = ids_objets_de_cote(chemin)
+    rad = None
+    if RADIATEURS:
+        from shapely.strtree import STRtree as _STr
+        _z = zones_radiateurs(pl, m_pt)
+        if _z: rad = (_STr(_z), _z)
+    ids_battants = set(); _ARCS_BATTANT.clear(); _CORDES_BATTANT.clear()
+    if VANTAUX:
+        ids_battants, a_, c_ = vantaux(pl, m_pt); _ARCS_BATTANT.update(a_); _CORDES_BATTANT.extend(c_)
     for o in pl.lines + pl.rects + pl.curves:
         if ids_cotes and id(o) in ids_cotes: continue
+        if ids_battants and id(o) in ids_battants: continue
+        if rad is not None:
+            _q = o.get("pts") or []
+            if _q:
+                _b = box(min(p[0] for p in _q), min(p[1] for p in _q), max(p[0] for p in _q), max(p[1] for p in _q))
+                if any(rad[1][i].contains(_b) for i in rad[0].query(_b)): continue
         pts = o.get("pts") or []
         if len(pts) < 2: continue
         lw = o.get("linewidth") or 0
@@ -259,6 +344,8 @@ def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbe
         if fins:
             arbre_f = _ST(fins)
             garde = set()
+            from collections import Counter as _C
+            serres, nb_serres = [], _C()
             for i, l in enumerate(fins):
                 (x1, y1), (x2, y2) = l.coords; L = l.length
                 ux, uy = (x2 - x1) / L, (y2 - y1) / L
@@ -273,7 +360,12 @@ def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbe
                     if d < 0.05 and min(L, l2.length) * m_pt < LONG_DT_SERRE: continue
                     p3, p4 = (x3 - x1) * ux + (y3 - y1) * uy, (x4 - x1) * ux + (y4 - y1) * uy
                     recouvre = min(L, max(p3, p4)) - max(0, min(p3, p4))
-                    if recouvre >= 0.5 * min(L, l2.length): garde.update((i, j))
+                    if recouvre >= 0.5 * min(L, l2.length):
+                        if DT_SANS_HACHURE and d < 0.05:
+                            serres.append((i, j)); nb_serres[i] += 1; nb_serres[j] += 1
+                        else: garde.update((i, j))
+            if DT_SANS_HACHURE:
+                garde.update(k for i, j in serres if nb_serres[i] == 1 and nb_serres[j] == 1 for k in (i, j))
             for i in garde:
                 morceaux.append(fins[i].buffer(DEMI_TRAIT / m_pt, cap_style=2)); n_double += 1
     DERNIERS_MORCEAUX[:] = list(zip(morceaux[:len(sigs)], sigs))   # bandes + traits epais (avant double trait)

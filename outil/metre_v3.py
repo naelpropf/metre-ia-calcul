@@ -161,9 +161,19 @@ def _pieces_v3(chemin):
                    # 0 -> 10 / 1 / 5 sures (avec calques B), 7 / 1 / 6 (sans). Vide sur les pages sans echelle ecrite contraire.
                    ("matiere echelle ecrite", {"ECHELLE_ECRITE": True, "PORTES_POINTILLES": True, "FERMETURE": 1.2}),
                    ("matiere echelle ecrite calques", {"ECHELLE_ECRITE": True, "PORTES_POINTILLES": True, "FERMETURE": 1.2, "CALQUES": "B"}),
+                   # 28/11 : BATTANTS dessines ouverts (pris pour des murs -> piece fermee sur le battant) + RADIATEURS
+                   # (rectangle en traits de mur + zigzag). Essai PC 548666_03 : base 0 -> 26 sures (29 avec murs neutres)
+                   ("matiere battants radiateurs", {"VANTAUX": True, "RADIATEURS": True}),
+                   ("matiere battants radiateurs neutres", {"VANTAUX": True, "RADIATEURS": True, "NEUTRES": True}),
                    # 28/11 : « double trait serre » v1 remise dans 4a244a9 : 15 sures en propre MAIS examen 25 min 53 et
                    # 947775_1_4 coupee (> 1500 s) -> retiree de nouveau pour le TEMPS ; a rendre rapide avant de la remettre
                    # ("matiere double trait serre", {"DOUBLE_TRAIT": True, "ECART_MIN_DT": 0.01, "LONG_DT_SERRE": 0.0, "FERMETURE": 1.2}),
+                   ] + ([("matiere double trait serre", {"DOUBLE_TRAIT": True, "ECART_MIN_DT": 0.01, "LONG_DT_SERRE": 0.0, "FERMETURE": 1.2,
+                                                         "DT_SANS_HACHURE": os.environ.get("DT_SANS_HACHURE") == "1"})]
+                        if os.environ.get("V3_DTS") == "1" else []) + (
+                   [("matiere battants", {"VANTAUX": True}), ("matiere battants fermeture", {"VANTAUX": True, "FERMETURE": 1.2}),
+                    ("matiere battants neutres", {"VANTAUX": True, "NEUTRES": True})]
+                        if os.environ.get("V3_VANTAUX") == "1" else []) + [   # 28/11 : essais PC seulement (pas dans l'examen)
                    # 28/11 : « double trait serre » v1 (passe en plus) +15/0 mais 25 min et 947775 coupee ; v2 (filtre longueur) +11/0, 25 min ;
                    # v3 (A LA PLACE de fermeture poteaux) +15 gagnees / 43 PERDUES (3094167 : 19, 3068854 : 24) -> 165 sures < 193 : REFUSEE
                    ] if CHAINE else []) + [
@@ -182,6 +192,8 @@ def _pieces_v3(chemin):
                    # rejeu corrige : 46 sures en propre -> REMIS
                    ("contours", {}),
                    ] + [("faces %.2f" % s_, {"seuil": s_}) for s_ in CANDIDATS]
+        if os.environ.get("V3_SEULES"):   # 28/11 : essai rapide au PC, seulement ces variantes (noms separes par des virgules)
+            _s = set(os.environ["V3_SEULES"].split(",")); taches = [t_ for t_ in taches if t_[0] in _s]
         args = [(chemin, nom, p, m_force, m_pt, zone_wkb) for nom, p in taches]
         import multiprocessing as _mp
         if PARALLELE > 1 and _mp.current_process().name == "MainProcess":
