@@ -65,3 +65,35 @@ for nom, (sujets, pas, *opt) in RUNS.items():
                                   "os.makedirs('/content', exist_ok=True)"))
     json.dump(kg, open(os.path.join(ICI, "kaggle_" + nom + ".ipynb"), "w", encoding="utf-8"), indent=1, ensure_ascii=False)
     print("ecrit", nom + ".ipynb")
+
+
+# 28/11 : KAGGLE DOUBLE = deux entrainements en meme temps dans UNE seance (une carte T4 chacun ; Kaggle compte le
+# temps de seance, pas le nombre de cartes -> deux fois plus de travail pour les memes 30 h). Journal entrelace,
+# chaque ligne prefixee [nom]. Paires : DOUBLES = {nom_du_carnet: (run_carte_0, run_carte_1)} (noms de RUNS).
+DOUBLES = {}
+
+
+def commande(nom):
+    sujets, pas, *opt = RUNS[nom]
+    env = "EXAMEN_SEUL=unsloth/Qwen3-VL-2B-Instruct-unsloth-bnb-4bit " if pas == 0 else ""
+    if opt and opt[0]: env += "MODELE=%s " % opt[0]
+    if len(opt) > 1: env += opt[1] + " "
+    return ("%sSUJETS=%s PAS=%d DOSSIER_EXAMEN=696398 EXAMEN_SUJETS=%s ENTREE=/content SORTIE=/content/sortie_%s "
+            "python -u depot/colab/entrainer_qwen3vl.py" % (env, sujets, pas, sujets if (pas == 0 or sujets in ("tout", "tri_visuel")) else TOUS, nom))
+
+
+for nom, (a, b) in DOUBLES.items():
+    lance = ("!cd /content && ( CUDA_VISIBLE_DEVICES=0 %s 2>&1 | sed -u 's/^/[%s] /' & "
+             "CUDA_VISIBLE_DEVICES=1 %s 2>&1 | sed -u 's/^/[%s] /' & wait ) | tee /content/run.log"
+             % (commande(a), a, commande(b), b))
+    nb = {"nbformat": 4, "nbformat_minor": 0,
+          "metadata": {"kernelspec": {"name": "python3", "display_name": "Python 3", "language": "python"},
+                       "language_info": {"name": "python"},
+                       "kaggle": {"accelerator": "nvidiaTeslaT4", "isInternetEnabled": True, "isGpuEnabled": True}},
+          "cells": [cellule("# Metre IA -- DOUBLE (Kaggle, 2 cartes T4) : %s (carte 0) + %s (carte 1). Executer tout." % (a, b)),
+                    cellule("import os\nos.makedirs('/content', exist_ok=True)"),
+                    cellule(VERIF + "\nimport torch\nassert torch.cuda.device_count() >= 2, 'UNE SEULE CARTE : choisir GPU T4 x2'"),
+                    cellule(PREP), cellule(lance)]}
+    nb["cells"][0]["cell_type"] = "markdown"; del nb["cells"][0]["execution_count"]; del nb["cells"][0]["outputs"]
+    json.dump(nb, open(os.path.join(ICI, "kaggle_" + nom + ".ipynb"), "w", encoding="utf-8"), indent=1, ensure_ascii=False)
+    print("ecrit kaggle_" + nom + ".ipynb")
