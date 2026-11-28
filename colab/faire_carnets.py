@@ -21,6 +21,8 @@ RUNS = {  # nom : (SUJETS, PAS)
     "specialiste_tri_visuel_x3": ("tri_visuel", 600, None, "EXAMEN_APPR=1 TIRAGES=3"),   # 3 tirages de traits par fiche
     "tri_visuel_4b_large": ("tri_visuel", 300, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit", "EXAMEN_APPR=1"),   # 28/11 : 32 dossiers (contre 14), memes reglages
     "tri_visuel_4b_large600": ("tri_visuel", 600, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit", "EXAMEN_APPR=1"),   # idem, 600 pas (~ autant de passages par fiche qu'avant)
+    "tri_visuel_4b_cadre": ("tri_visuel", 300, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit", "EXAMEN_APPR=1 DESSIN=cadre"),   # 28/11 soir : traits ENCADRES (plus caches)
+    "tri_visuel_4b_cadre600": ("tri_visuel", 600, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit", "EXAMEN_APPR=1 DESSIN=cadre"),
     "specialiste_tri_visuel_4b": ("tri_visuel", 300, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit", "EXAMEN_APPR=1"),   # l'ancien exercice entier (plan + contour), relance de la v3 coupee a 03 h 28   # PAS=0 : modele de BASE sans entrainement (EXAMEN_SEUL)
 }
 PREP = "\n".join([
@@ -71,8 +73,11 @@ for nom, (sujets, pas, *opt) in RUNS.items():
 
 # 28/11 : KAGGLE DOUBLE = deux entrainements en meme temps dans UNE seance (une carte T4 chacun ; Kaggle compte le
 # temps de seance, pas le nombre de cartes -> deux fois plus de travail pour les memes 30 h). Journal entrelace,
-# chaque ligne prefixee [nom]. Paires : DOUBLES = {nom_du_carnet: (run_carte_0, run_carte_1)} (noms de RUNS).
-DOUBLES = {"double_4b_large": ("tri_visuel_4b_large", "tri_visuel_4b_large600")}
+# chaque ligne prefixee [nom]. Paires : # 28/11 soir : sous Kaggle, seul /kaggle/working est garde a la fin -> on y copie les sorties (examen, bilan)
+GARDER = "!cp -r /content/sortie_* /content/run.log /kaggle/working/ 2>/dev/null; ls -R /kaggle/working | head -30"
+DOUBLES = {nom_du_carnet: (run_carte_0, run_carte_1)} (noms de RUNS).
+DOUBLES = {"double_4b_large": ("tri_visuel_4b_large", "tri_visuel_4b_large600"),
+           "double_4b_cadre": ("tri_visuel_4b_cadre", "tri_visuel_4b_cadre600")}
 
 
 def commande(nom):
@@ -95,7 +100,7 @@ for nom, (a, b) in DOUBLES.items():
           "cells": [cellule("# Metre IA -- DOUBLE (Kaggle, 2 cartes T4) : %s (carte 0) + %s (carte 1). Executer tout." % (a, b)),
                     cellule("import os\nos.makedirs('/content', exist_ok=True)"),
                     cellule(VERIF + "\nimport torch\nassert torch.cuda.device_count() >= 2, 'UNE SEULE CARTE : choisir GPU T4 x2'"),
-                    cellule(PREP), cellule(lance)]}
+                    cellule(PREP), cellule(lance), cellule(GARDER)]}
     nb["cells"][0]["cell_type"] = "markdown"; del nb["cells"][0]["execution_count"]; del nb["cells"][0]["outputs"]
     json.dump(nb, open(os.path.join(ICI, "kaggle_" + nom + ".ipynb"), "w", encoding="utf-8"), indent=1, ensure_ascii=False)
     print("ecrit kaggle_" + nom + ".ipynb")

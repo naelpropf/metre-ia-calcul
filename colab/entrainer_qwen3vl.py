@@ -99,7 +99,40 @@ def marques(f, t=0):
     r.shuffle(T); return T
 
 
+DESSIN = os.environ.get("DESSIN", "trait")
+# 28/11 soir : CAUSE TROUVEE -- le carre numerote (34 px) pose au milieu du trait cachait 43 % des traits d'examen, et
+# le trait peint en couleur effacait ce qui distingue un mur (epais, hachure), une cote, un meuble. DESSIN=cadre : un
+# cadre fin de couleur AUTOUR du trait (le dessin d'origine reste visible) et le numero A COTE, a une place libre.
+
+
+def dessiner_cadre(im, T):
+    from PIL import ImageDraw
+    im = im.copy(); d = ImageDraw.Draw(im); W, H = im.size; M, S = 7, 24
+    cadres = []
+    for t, _ in T:
+        x0, y0, x1, y1 = t[0] * W / 1000, t[1] * H / 1000, t[2] * W / 1000, t[3] * H / 1000
+        cadres.append([min(x0, x1) - M, min(y0, y1) - M, max(x0, x1) + M, max(y0, y1) + M])
+    pris = []
+    def libre(b):
+        if b[0] < 0 or b[1] < 0 or b[2] > W or b[3] > H: return False
+        inter = lambda a, c: a[0] < c[2] and c[0] < a[2] and a[1] < c[3] and c[1] < a[3]
+        return not any(inter(b, c) for c in pris) and not any(inter(b, c) for c in cadres)
+    for i, b in enumerate(cadres):
+        c = COULEURS[i % 6]; d.rectangle(b, outline=c, width=3)
+        mx, my = (b[0] + b[2]) / 2, (b[1] + b[3]) / 2
+        places = [(b[0] - S - 2, b[1] - S - 2), (b[2] + 2, b[1] - S - 2), (b[0] - S - 2, b[3] + 2), (b[2] + 2, b[3] + 2),
+                  (mx - S / 2, b[1] - S - 2), (mx - S / 2, b[3] + 2), (b[0] - S - 2, my - S / 2), (b[2] + 2, my - S / 2)]
+        for k in range(1, 4):   # puis de plus en plus loin si tout est pris
+            places += [(x + dx * k * S, y + dy * k * S) for x, y in places[:8] for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1))]
+        pos = next((p for p in places if libre([p[0], p[1], p[0] + S, p[1] + S])), places[0])
+        e = [pos[0], pos[1], pos[0] + S, pos[1] + S]; pris.append(e)
+        d.rectangle(e, fill=c, outline=(0, 0, 0), width=1)
+        d.text(((e[0] + e[2]) / 2, (e[1] + e[3]) / 2), str(i + 1), fill=(255, 255, 255), font=POLICE_PETITE, anchor="mm")
+    return im
+
+
 def dessiner(im, T):
+    if DESSIN == "cadre": return dessiner_cadre(im, T)
     from PIL import ImageDraw
     im = im.copy(); d = ImageDraw.Draw(im); W, H = im.size
     for i, (t, _) in enumerate(T):
@@ -113,9 +146,9 @@ def dessiner(im, T):
 
 try:
     from PIL import ImageFont
-    POLICE = ImageFont.load_default(size=26)
+    POLICE = ImageFont.load_default(size=26); POLICE_PETITE = ImageFont.load_default(size=19)
 except Exception:
-    POLICE = None
+    POLICE = POLICE_PETITE = None
 NOMS_COULEURS = ["rouge", "vert", "bleu", "orange", "violet", "rose"]
 
 
@@ -161,9 +194,11 @@ def exemple(f, s, t=0):
         return q, c
     if s == "tri_visuel":
         T = marques(f, t)
-        return (tete + "Sur l'image, %d traits sont surlignes en couleur et numerotes (1 a %d) ; la piece « %s » est autour. "
-                "Les traits : %s. Pour chaque trait numerote, dis si c'est un MUR, un OBJET a l'interieur (mobilier, "
-                "equipement) ou une ligne de COTE. Reponds : 1 : MUR ; 2 : OBJET ; ..."
+        debut = ("Sur l'image, %d traits sont entoures d'un cadre de couleur et numerotes (1 a %d, le numero est a cote "
+                 "du cadre) ; la piece « %s » est autour. " if DESSIN == "cadre" else
+                 "Sur l'image, %d traits sont surlignes en couleur et numerotes (1 a %d) ; la piece « %s » est autour. ")
+        return (tete + (debut + "Les traits : %s. Pour chaque trait numerote, dis si c'est un MUR, un OBJET a l'interieur (mobilier, "
+                "equipement) ou une ligne de COTE. Reponds : 1 : MUR ; 2 : OBJET ; ...")
                 % (len(T), len(T), nom(f), ", ".join("%d = %s" % (i + 1, NOMS_COULEURS[i % 6]) for i in range(len(T)))),
                 " ; ".join("%d : %s" % (i + 1, e) for i, (_, e) in enumerate(T)))
     if s == "contour":
