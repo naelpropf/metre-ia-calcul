@@ -73,9 +73,9 @@ for nom, (sujets, pas, *opt) in RUNS.items():
 
 # 28/11 : KAGGLE DOUBLE = deux entrainements en meme temps dans UNE seance (une carte T4 chacun ; Kaggle compte le
 # temps de seance, pas le nombre de cartes -> deux fois plus de travail pour les memes 30 h). Journal entrelace,
-# chaque ligne prefixee [nom]. Paires : # 28/11 soir : sous Kaggle, seul /kaggle/working est garde a la fin -> on y copie les sorties (examen, bilan)
+# chaque ligne prefixee [nom]. Paires : DOUBLES = {nom_du_carnet: (run_carte_0, run_carte_1)} (noms de RUNS).
+# 28/11 soir : sous Kaggle, seul /kaggle/working est garde a la fin -> on y copie les sorties (examen, bilan)
 GARDER = "!cp -r /content/sortie_* /content/run.log /kaggle/working/ 2>/dev/null; ls -R /kaggle/working | head -30"
-DOUBLES = {nom_du_carnet: (run_carte_0, run_carte_1)} (noms de RUNS).
 DOUBLES = {"double_4b_large": ("tri_visuel_4b_large", "tri_visuel_4b_large600"),
            "double_4b_cadre": ("tri_visuel_4b_cadre", "tri_visuel_4b_cadre600")}
 
