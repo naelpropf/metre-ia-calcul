@@ -123,6 +123,21 @@ def _echelle_memo(chemin_abs, num_page, mtime):
 ECHELLES_PLAUSIBLES = (20, 25, 50, 75, 100, 125, 150, 200, 250, 300, 400, 500)
 
 
+def echelle_ecrite(chemin, num_page=0):
+    """28/11 -- echelle ECRITE sur la page (« 1/100 » ou « 1:100 »), la plus frequente parmi les plausibles ; None sinon.
+    Cause mesuree : 3068854 demolition R-3, cotes = 3 voix -> 0,0251 m/pt alors que la page dit « Echelle : 1:100 »
+    (0,0353) : toutes les pieces a la MOITIE de l'ecrit. Le garde-fou ne lisait que « 1/N »."""
+    import re
+    from collections import Counter
+    try:
+        doc = pdfium.PdfDocument(normaliser(chemin, num_page)); p = doc[0 if "_a_plat" in normaliser(chemin, num_page) else num_page]
+        txt = p.get_textpage().get_text_range(); doc.close()
+    except Exception:
+        return None
+    N = [int(n) for n in re.findall(r"(?<![\d,.])1\s*[/:]\s*(\d{2,3})(?![\d,.])", txt) if int(n) in ECHELLES_PLAUSIBLES]
+    return Counter(N).most_common(1)[0][0] * 0.0254 / 72.0 if N else None
+
+
 def garde_fou_echelle(chemin, num_page, r):
     """27/11 -- bug trouve en entrainant la vision : sur 8 pages, l'echelle « par les cotes » tenait sur un paquet de 2 a 12 voix
     (5-12 % des voix) et donnait une page de 0,1 a 16 m de large, alors que le cartouche dit 1/200. Le metreur controle avec

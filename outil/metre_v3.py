@@ -93,6 +93,10 @@ def _candidat(arg):
                 elif a and abs(a / e["surface_ecrite"] - 1) <= PROCHE:
                     proches.append(((round(e["x"], 1), round(e["y"], 1)), abs(a / e["surface_ecrite"] - 1), _cc(h)))
         else:
+            if params.get("ECHELLE_ECRITE"):   # 28/11 : variante a l'echelle ECRITE, seulement si elle contredit l'echelle utilisee
+                me = metre.echelle_ecrite(chemin)
+                if not me or not m_pt or abs(me / m_pt - 1) < 0.05: return nom, [], []
+                m_force = me; params = {k: v for k, v in params.items() if k != "ECHELLE_ECRITE"}
             params = dict(params, CALCUL_DOUTES=False)   # 27/11 : la variante ne garde que la surface (vitesse, meme resultat)
             ancien = {k: getattr(matiere, k) for k in params}
             for k, v in params.items(): setattr(matiere, k, v)
@@ -150,10 +154,16 @@ def _pieces_v3(chemin):
                    ("matiere chaine", {"SANS_COTES": True, "OUVERTURES": True, "PORTES_POINTILLES": True}),
                    ("matiere fermeture poteaux", {"FERMETURE": 1.2}),   # 27/11 nuit : chaine v2 (facade vitree)
                    # 28/11 : CALQUES du dessin (calques.py ; declaration au journal) -- vides sur les pages sans calque mur
-                   ("matiere calques sans bruit", {"CALQUES": "A"}),
-                   ("matiere calques murs seuls", {"CALQUES": "B"}),
-                   # 28/11 : remise (temps libere par les retraits) ; v1 = +15 / 0 perdue (48705be), refusee pour le temps seul
-                   ("matiere double trait serre", {"DOUBLE_TRAIT": True, "ECART_MIN_DT": 0.01, "LONG_DT_SERRE": 0.0, "FERMETURE": 1.2}),
+                   # 28/11 : ESSAYEES (4a244a9) puis retirees : A = 1 sure en propre, B = 0 (seuil +10) ; restent dans
+                   # « echelle ecrite calques » ci-dessous (calques utiles seulement avec la bonne echelle, essai PC R-3)
+                   # 28/11 : ECHELLE ECRITE (« 1:100 ») quand elle contredit les cotes + portes en pointilles + fermeture ;
+                   # cause : 3068854 demolition = pieces a la moitie de l'ecrit (echelle des cotes sur 3 voix). Essai PC 3 pages :
+                   # 0 -> 10 / 1 / 5 sures (avec calques B), 7 / 1 / 6 (sans). Vide sur les pages sans echelle ecrite contraire.
+                   ("matiere echelle ecrite", {"ECHELLE_ECRITE": True, "PORTES_POINTILLES": True, "FERMETURE": 1.2}),
+                   ("matiere echelle ecrite calques", {"ECHELLE_ECRITE": True, "PORTES_POINTILLES": True, "FERMETURE": 1.2, "CALQUES": "B"}),
+                   # 28/11 : « double trait serre » v1 remise dans 4a244a9 : 15 sures en propre MAIS examen 25 min 53 et
+                   # 947775_1_4 coupee (> 1500 s) -> retiree de nouveau pour le TEMPS ; a rendre rapide avant de la remettre
+                   # ("matiere double trait serre", {"DOUBLE_TRAIT": True, "ECART_MIN_DT": 0.01, "LONG_DT_SERRE": 0.0, "FERMETURE": 1.2}),
                    # 28/11 : « double trait serre » v1 (passe en plus) +15/0 mais 25 min et 947775 coupee ; v2 (filtre longueur) +11/0, 25 min ;
                    # v3 (A LA PLACE de fermeture poteaux) +15 gagnees / 43 PERDUES (3094167 : 19, 3068854 : 24) -> 165 sures < 193 : REFUSEE
                    ] if CHAINE else []) + [
@@ -168,7 +178,9 @@ def _pieces_v3(chemin):
                    # 27/11 : « matiere etiquette proche » ESSAYE puis retire (banc 125 -> 125, aucun gain, +temps)
                    ] + ([("matiere fiche de conventions", {"PAS_MUR": _fiche(chemin)})] if _fiche(chemin) else []) + (
                    [("matiere + murs IA", {"IA_MURS": True})] if os.environ.get("V3_IA", "1") == "1" and glob.glob(os.path.join(ici, "sorties", "objets_appr_mm*", os.path.basename(chemin)[:7] + "*")) else []) + [
-                   # 28/11 : « contours » retire (rejeu 7ed1699 : 0 sure perdue sans lui ni faces 0,25/0,45)
+                   # 28/11 : « contours » retire dans 4a244a9 sur un rejeu FAUX (il ecrit sa source sous un autre nom) ;
+                   # rejeu corrige : 46 sures en propre -> REMIS
+                   ("contours", {}),
                    ] + [("faces %.2f" % s_, {"seuil": s_}) for s_ in CANDIDATS]
         args = [(chemin, nom, p, m_force, m_pt, zone_wkb) for nom, p in taches]
         import multiprocessing as _mp
