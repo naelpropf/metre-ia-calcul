@@ -31,6 +31,12 @@ PREP = "\n".join([
 ])
 
 
+# 28/11 : Colab bloque donne parfois une machine SANS GPU (« nvidia-smi: command not found ») -> on arrete tout de suite
+VERIF = ("import shutil, subprocess\n"
+         "assert shutil.which('nvidia-smi') and subprocess.run(['nvidia-smi', '-L']).returncode == 0, "
+         "'PAS DE GPU : Colab a donne une machine sans GPU (limites d utilisation) -> rien n est lance'")
+
+
 def cellule(src):
     return {"cell_type": "code", "execution_count": None, "metadata": {}, "outputs": [], "source": src.splitlines(True)}
 
@@ -46,7 +52,7 @@ for nom, (sujets, pas, *opt) in RUNS.items():
           "metadata": {"accelerator": "GPU", "colab": {"provenance": [], "gpuType": "T4"},
                        "kernelspec": {"name": "python3", "display_name": "Python 3"}, "language_info": {"name": "python"}},
           "cells": [cellule("# Metre IA -- %s (SUJETS=%s, %d pas). Executer tout." % (nom, sujets, pas)),
-                    cellule(PREP), cellule(lance)]}
+                    cellule(VERIF), cellule(PREP), cellule(lance)]}
     nb["cells"][0]["cell_type"] = "markdown"; del nb["cells"][0]["execution_count"]; del nb["cells"][0]["outputs"]
     json.dump(nb, open(os.path.join(ICI, nom + ".ipynb"), "w", encoding="utf-8"), indent=1, ensure_ascii=False)
     print("ecrit", nom + ".ipynb")
