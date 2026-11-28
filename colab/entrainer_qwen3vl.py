@@ -89,6 +89,9 @@ FIN = {"tout": "Contour", "etiquette": "ETIQUETTE", "murs": "MURS", "tri": "COTE
 COULEURS = [(230, 25, 75), (60, 180, 75), (0, 130, 200), (245, 130, 48), (145, 30, 180), (240, 50, 230)]
 
 
+# 28/11 soir : BUG CORRIGE -- les traits etaient dessines en millimes de W (x) et de H (y) alors que les fiches sont en
+# millimes du PLUS GRAND cote : sur une image non carree, la marque tombait a cote du trait (47 % des murs, 59 % des objets
+# hors de tout dessin ; 10 % et 29 % une fois corrige). Tous les entrainements tri_visuel d avant sont a refaire.
 def marques(f, t=0):
     """t = numero du tirage (28/11 : TIRAGES=3 -> 3 choix de traits differents par fiche ; t=0 = celui de l'examen)."""
     p = f["pensee"]; r = random.Random(f["image"] + "tv" + (str(t) if t else ""))
@@ -110,7 +113,7 @@ def dessiner_cadre(im, T):
     im = im.copy(); d = ImageDraw.Draw(im); W, H = im.size; M, S = 7, 24
     cadres = []
     for t, _ in T:
-        x0, y0, x1, y1 = t[0] * W / 1000, t[1] * H / 1000, t[2] * W / 1000, t[3] * H / 1000
+        S = max(W, H) / 1000; x0, y0, x1, y1 = t[0] * S, t[1] * S, t[2] * S, t[3] * S   # 28/11 : BUG -- millimes du PLUS GRAND cote (exercices_plans.py), pas W et H
         cadres.append([min(x0, x1) - M, min(y0, y1) - M, max(x0, x1) + M, max(y0, y1) + M])
     pris = []
     def libre(b):
@@ -136,7 +139,7 @@ def dessiner(im, T):
     from PIL import ImageDraw
     im = im.copy(); d = ImageDraw.Draw(im); W, H = im.size
     for i, (t, _) in enumerate(T):
-        x0, y0, x1, y1 = t[0] * W / 1000, t[1] * H / 1000, t[2] * W / 1000, t[3] * H / 1000; c = COULEURS[i % 6]
+        S = max(W, H) / 1000; x0, y0, x1, y1 = t[0] * S, t[1] * S, t[2] * S, t[3] * S; c = COULEURS[i % 6]   # 28/11 : BUG corrige -- millimes du PLUS GRAND cote (exercices_plans.py), pas W et H
         d.line([x0, y0, x1, y1], fill=c, width=5); mx, my = (x0 + x1) / 2, (y0 + y1) / 2
         # 28/11 : chiffre de 8 px (~5 px apres reduction a 512) = illisible -> specialiste 3/16 ; chiffre de 26 px
         d.rectangle([mx - 17, my - 17, mx + 17, my + 17], fill=c, outline=(0, 0, 0), width=2)

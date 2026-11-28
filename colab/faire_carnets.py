@@ -23,6 +23,8 @@ RUNS = {  # nom : (SUJETS, PAS)
     "tri_visuel_4b_large600": ("tri_visuel", 600, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit", "EXAMEN_APPR=1"),   # idem, 600 pas (~ autant de passages par fiche qu'avant)
     "tri_visuel_4b_cadre": ("tri_visuel", 300, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit", "EXAMEN_APPR=1 DESSIN=cadre"),   # 28/11 soir : traits ENCADRES (plus caches)
     "tri_visuel_4b_cadre600": ("tri_visuel", 600, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit", "EXAMEN_APPR=1 DESSIN=cadre"),
+    "tri_visuel_4b_trait_v2": ("tri_visuel", 300, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit", "EXAMEN_APPR=1"),   # 28/11 soir : BUG d'echelle des marques CORRIGE
+    "tri_visuel_4b_cadre_v2": ("tri_visuel", 300, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit", "EXAMEN_APPR=1 DESSIN=cadre"),
     "specialiste_tri_visuel_4b": ("tri_visuel", 300, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit", "EXAMEN_APPR=1"),   # l'ancien exercice entier (plan + contour), relance de la v3 coupee a 03 h 28   # PAS=0 : modele de BASE sans entrainement (EXAMEN_SEUL)
 }
 PREP = "\n".join([
@@ -77,7 +79,8 @@ for nom, (sujets, pas, *opt) in RUNS.items():
 # 28/11 soir : sous Kaggle, seul /kaggle/working est garde a la fin -> on y copie les sorties (examen, bilan)
 GARDER = "!cp -r /content/sortie_* /content/run.log /kaggle/working/ 2>/dev/null; ls -R /kaggle/working | head -30"
 DOUBLES = {"double_4b_large": ("tri_visuel_4b_large", "tri_visuel_4b_large600"),
-           "double_4b_cadre": ("tri_visuel_4b_cadre", "tri_visuel_4b_cadre600")}
+           "double_4b_cadre": ("tri_visuel_4b_cadre", "tri_visuel_4b_cadre600"),
+           "double_4b_v2": ("tri_visuel_4b_trait_v2", "tri_visuel_4b_cadre_v2")}   # 28/11 soir : marques a la BONNE place
 
 
 def commande(nom):
