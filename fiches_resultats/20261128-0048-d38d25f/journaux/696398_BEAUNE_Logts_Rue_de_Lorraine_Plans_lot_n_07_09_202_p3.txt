@@ -1,0 +1,3 @@
+696398_BEAUNE_Logts_Rue_de_Lorraine_Plans_lot_n_07_09_2 objets   5300 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 5 s
+696398_BEAUNE_Logts_Rue_de_Lorraine_Plans_lot_n_07 0 piece sure
+FIN fiches 0

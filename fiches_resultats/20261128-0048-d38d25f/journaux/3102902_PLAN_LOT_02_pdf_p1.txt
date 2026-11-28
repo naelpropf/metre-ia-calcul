@@ -1,0 +1,3 @@
+3102902_PLAN_LOT_02_pdf_p1                              objets  36694 | limite   474 | pas limite   4163 | pieces sures : matiere 11, faces 3, pixels 0 | 32 s
+3102902_PLAN_LOT_02_pdf_p1                         fiches  28 (objets oui) | total 28
+FIN fiches 28

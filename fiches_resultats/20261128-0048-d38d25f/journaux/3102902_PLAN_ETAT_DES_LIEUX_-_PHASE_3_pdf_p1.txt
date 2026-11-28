@@ -1,0 +1,3 @@
+3102902_PLAN_ETAT_DES_LIEUX_-_PHASE_3_pdf_p1            objets 148086 | limite   165 | pas limite    163 | pieces sures : matiere 4, faces 0, pixels 0 | 77 s
+3102902_PLAN_ETAT_DES_LIEUX_-_PHASE_3_pdf_p1       fiches  15 (objets oui) | total 15
+FIN fiches 15

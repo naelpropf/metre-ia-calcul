@@ -1,0 +1,3 @@
+696398_2324-Hospices_Civils_de_Beaune_-_plans_DCE_pdf_p objets 113959 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 79 s
+696398_2324-Hospices_Civils_de_Beaune_-_plans_DCE_ fiches   3 (objets oui) | total 3
+FIN fiches 3

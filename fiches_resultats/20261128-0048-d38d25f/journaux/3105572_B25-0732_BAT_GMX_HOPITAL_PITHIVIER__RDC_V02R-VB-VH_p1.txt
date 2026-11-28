@@ -1,0 +1,3 @@
+3105572_B25-0732_BAT_GMX_HOPITAL_PITHIVIER__RDC_V02R-VB objets  22878 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 6 s
+3105572_B25-0732_BAT_GMX_HOPITAL_PITHIVIER__RDC_V0 fiches 157 (objets oui) | total 157
+FIN fiches 157

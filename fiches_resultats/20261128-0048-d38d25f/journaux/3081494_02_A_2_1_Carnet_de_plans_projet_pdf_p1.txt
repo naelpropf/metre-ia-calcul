@@ -1,0 +1,3 @@
+3081494_02_A_2_1_Carnet_de_plans_projet_pdf_p1          objets  27208 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 15 s
+3081494_02_A_2_1_Carnet_de_plans_projet_pdf_p1     0 piece sure
+FIN fiches 0

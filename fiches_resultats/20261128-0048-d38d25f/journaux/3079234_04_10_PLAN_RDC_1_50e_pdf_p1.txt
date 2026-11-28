@@ -1,0 +1,3 @@
+3079234_04_10_PLAN_RDC_1_50e_pdf_p1                     objets 207256 | limite   188 | pas limite    939 | pieces sures : matiere 8, faces 0, pixels 0 | 631 s
+3079234_04_10_PLAN_RDC_1_50e_pdf_p1                fiches  16 (objets oui) | total 16
+FIN fiches 16

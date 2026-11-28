@@ -1,0 +1,3 @@
+3102902_PLAN_LOT_03_-_N_02_pdf_p1                       objets  69928 | limite   150 | pas limite   2864 | pieces sures : matiere 5, faces 8, pixels 0 | 119 s
+3102902_PLAN_LOT_03_-_N_02_pdf_p1                  fiches  31 (objets oui) | total 31
+FIN fiches 31

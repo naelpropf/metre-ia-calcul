@@ -1,0 +1,3 @@
+3102902_PLAN_ETAT_FUTUR_-_PHASE_3_pdf_p1                objets 119767 | limite   384 | pas limite   2697 | pieces sures : matiere 9, faces 2, pixels 0 | 98 s
+3102902_PLAN_ETAT_FUTUR_-_PHASE_3_pdf_p1           fiches  32 (objets oui) | total 32
+FIN fiches 32

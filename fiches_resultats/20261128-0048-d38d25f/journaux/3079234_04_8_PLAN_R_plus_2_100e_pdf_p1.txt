@@ -1,0 +1,3 @@
+3079234_04_8_PLAN_R_plus_2_100e_pdf_p1                  objets 332239 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 927 s
+3079234_04_8_PLAN_R_plus_2_100e_pdf_p1             0 piece sure
+FIN fiches 0

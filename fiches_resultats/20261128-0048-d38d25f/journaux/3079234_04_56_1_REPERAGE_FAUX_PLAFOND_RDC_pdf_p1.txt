@@ -1,0 +1,3 @@
+3079234_04_56_1_REPERAGE_FAUX_PLAFOND_RDC_pdf_p1        objets 574532 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 1684 s
+3079234_04_56_1_REPERAGE_FAUX_PLAFOND_RDC_pdf_p1   0 piece sure
+FIN fiches 0

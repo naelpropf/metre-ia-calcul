@@ -1,0 +1,3 @@
+3079234_04_12_PLAN_R_plus_1_1_50e_pdf_p1                objets 402811 | limite   124 | pas limite   2034 | pieces sures : matiere 2, faces 0, pixels 0 | 2280 s
+3079234_04_12_PLAN_R_plus_1_1_50e_pdf_p1           fiches  30 (objets oui) | total 30
+FIN fiches 30

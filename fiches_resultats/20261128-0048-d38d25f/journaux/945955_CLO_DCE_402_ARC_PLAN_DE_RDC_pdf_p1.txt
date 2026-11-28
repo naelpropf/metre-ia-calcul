@@ -1,0 +1,3 @@
+945955_CLO_DCE_402_ARC_PLAN_DE_RDC_pdf_p1               objets 118075 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 81 s
+945955_CLO_DCE_402_ARC_PLAN_DE_RDC_pdf_p1          0 piece sure
+FIN fiches 0

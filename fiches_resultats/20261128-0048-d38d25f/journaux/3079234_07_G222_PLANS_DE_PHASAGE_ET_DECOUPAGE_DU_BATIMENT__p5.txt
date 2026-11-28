@@ -1,0 +1,3 @@
+3079234_07_G222_PLANS_DE_PHASAGE_ET_DECOUPAGE_DU_BATIME objets 179095 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 56 s
+3079234_07_G222_PLANS_DE_PHASAGE_ET_DECOUPAGE_DU_B 0 piece sure
+FIN fiches 0

@@ -1,0 +1,3 @@
+3105572_GEO02_RDC_pdf_p1                                objets  34688 | limite   177 | pas limite    845 | pieces sures : matiere 20, faces 1, pixels 0 | 70 s
+3105572_GEO02_RDC_pdf_p1                           fiches  65 (objets oui) | total 65
+FIN fiches 65

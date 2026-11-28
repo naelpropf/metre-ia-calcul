@@ -1,0 +1,3 @@
+3105572_2503_DCE_PG05_1_R_2_-_zone_EST_pdf_p1           objets 226219 | limite    95 | pas limite   1162 | pieces sures : matiere 4, faces 0, pixels 0 | 1613 s
+3105572_2503_DCE_PG05_1_R_2_-_zone_EST_pdf_p1      fiches  16 (objets oui) | total 16
+FIN fiches 16

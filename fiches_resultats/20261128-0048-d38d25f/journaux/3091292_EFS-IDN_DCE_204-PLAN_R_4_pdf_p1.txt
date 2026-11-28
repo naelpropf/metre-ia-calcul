@@ -1,0 +1,3 @@
+3091292_EFS-IDN_DCE_204-PLAN_R_4_pdf_p1                 objets  41439 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 18 s
+3091292_EFS-IDN_DCE_204-PLAN_R_4_pdf_p1            0 piece sure
+FIN fiches 0

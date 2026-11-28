@@ -1,0 +1,4 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 16.5 m, ecrit 1/200 -> 84.0 m
+3081494_02_A_2_1_Carnet_de_plans_projet_pdf_p3          objets  28667 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 16 s
+3081494_02_A_2_1_Carnet_de_plans_projet_pdf_p3     0 piece sure
+FIN fiches 0

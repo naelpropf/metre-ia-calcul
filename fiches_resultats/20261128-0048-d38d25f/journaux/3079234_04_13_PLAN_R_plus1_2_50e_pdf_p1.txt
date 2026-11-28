@@ -1,0 +1,3 @@
+3079234_04_13_PLAN_R_plus1_2_50e_pdf_p1                 objets 330335 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 1216 s
+3079234_04_13_PLAN_R_plus1_2_50e_pdf_p1            0 piece sure
+FIN fiches 0

@@ -1,0 +1,4 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 21.1 m, ecrit 1/50 -> 21.0 m
+3102902_PLAN_LOT_09_pdf_p1                              objets  12210 | limite   219 | pas limite   1335 | pieces sures : matiere 4, faces 2, pixels 0 | 8 s
+3102902_PLAN_LOT_09_pdf_p1                         fiches  13 (objets oui) | total 13
+FIN fiches 13

@@ -1,0 +1,3 @@
+548704_NDBR_DCE_FF_P01_Plan_RDC_-_file_A_à_D_pdf_p1     objets  81386 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 21 s
+548704_NDBR_DCE_FF_P01_Plan_RDC_-_file_A_à_D_pdf_p 0 piece sure
+FIN fiches 0

@@ -1,0 +1,4 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 21.0 m, ecrit 1/50 -> 21.0 m
+548571_NIEDERNAI_DCE_PLANS_architectes_pdf_p7           objets  13738 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 10 s
+548571_NIEDERNAI_DCE_PLANS_architectes_pdf_p7      fiches   1 (objets oui) | total 1
+FIN fiches 1

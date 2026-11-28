@@ -1,0 +1,3 @@
+3092222_A03b-Projet_R_1_pdf_p1                          objets   6580 | limite    23 | pas limite      6 | pieces sures : matiere 2, faces 0, pixels 0 | 3 s
+3092222_A03b-Projet_R_1_pdf_p1                     fiches   3 (objets oui) | total 3
+FIN fiches 3

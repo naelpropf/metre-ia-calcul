@@ -1,0 +1,3 @@
+945955_CLO_DCE_403_ARC_PLAN_DE_R_1_pdf_p1               objets 101916 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 53 s
+945955_CLO_DCE_403_ARC_PLAN_DE_R_1_pdf_p1          0 piece sure
+FIN fiches 0

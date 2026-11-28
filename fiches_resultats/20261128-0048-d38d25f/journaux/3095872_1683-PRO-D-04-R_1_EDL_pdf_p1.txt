@@ -1,0 +1,3 @@
+3095872_1683-PRO-D-04-R_1_EDL_pdf_p1                    objets  19173 | limite    16 | pas limite    780 | pieces sures : matiere 1, faces 0, pixels 0 | 9 s
+3095872_1683-PRO-D-04-R_1_EDL_pdf_p1               fiches   1 (objets oui) | total 1
+FIN fiches 1

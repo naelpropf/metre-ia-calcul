@@ -1,0 +1,3 @@
+3102902_PLAN_LOT_05_pdf_p1                              objets 119083 | limite   209 | pas limite   2802 | pieces sures : matiere 4, faces 5, pixels 0 | 124 s
+3102902_PLAN_LOT_05_pdf_p1                         fiches  38 (objets oui) | total 38
+FIN fiches 38

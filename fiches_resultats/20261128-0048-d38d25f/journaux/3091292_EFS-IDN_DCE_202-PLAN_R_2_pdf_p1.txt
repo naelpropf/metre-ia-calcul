@@ -1,0 +1,3 @@
+3091292_EFS-IDN_DCE_202-PLAN_R_2_pdf_p1                 objets  60416 | limite    36 | pas limite    598 | pieces sures : matiere 2, faces 0, pixels 0 | 51 s
+3091292_EFS-IDN_DCE_202-PLAN_R_2_pdf_p1            fiches   7 (objets oui) | total 7
+FIN fiches 7

@@ -1,0 +1,4 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 15.2 m, ecrit 1/200 -> 84.0 m
+3081494_02_A_2_15_Carnet_de_plans_démolition_pdf_p5     objets  45944 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 20 s
+3081494_02_A_2_15_Carnet_de_plans_démolition_pdf_p 0 piece sure
+FIN fiches 0
