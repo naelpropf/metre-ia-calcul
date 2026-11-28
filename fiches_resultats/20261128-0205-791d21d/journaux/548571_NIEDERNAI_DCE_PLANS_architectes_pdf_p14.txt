@@ -1,0 +1,3 @@
+548571_NIEDERNAI_DCE_PLANS_architectes_pdf_p14          objets   9010 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 4 s
+548571_NIEDERNAI_DCE_PLANS_architectes_pdf_p14     fiches   2 (objets oui) | total 2
+FIN fiches 2

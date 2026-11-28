@@ -1,0 +1,19 @@
+243347_DINAN-FDE-DCE-PLAN_RDC_BAS_-_ZONE_OUEST_pdf_p1        objets 0 (68 s) | fiches 0 (56 s) : 1
+243347_DINAN-FDE-DCE-PLAN_RDC_HAUT_-_ZONE_EST_pdf_p1         objets 0 (115 s) | fiches 0 (44 s) : 2
+244528_TREL_-_DCE_-_01_Plan_RDC_A0_pdf_p1                    objets 0 (130 s) | fiches 0 (56 s) : 4
+3081494_02_A_2_8_Carnet_de_plans_existants_pdf_p2            objets 0 (16 s) | fiches 0 (1 s) : 0
+3094112_DCE_09_1_PLAN_DE_LOCALISATION_DES_CLOISONS_DU_R_1__p objets 0 (6 s) | fiches 0 (15 s) : 2
+3095872_1683-PRO-D-10-RDC_PROJET_pdf_p1                      objets 0 (19 s) | fiches 0 (40 s) : 35
+3105572_2503_DCE_PE_02_Plan_RDC_pdf_p1                       objets 0 (197 s) | fiches 0 (142 s) : 47
+3105572_FM00-Plan_R0_pdf_p1                                  objets 0 (2 s) | fiches 0 (13 s) : 6
+548571_NIEDERNAI_DCE_PLANS_architectes_pdf_p14               objets 0 (5 s) | fiches 0 (11 s) : 2
+548704_NDBR_DCE_DBS_Repérage_acoustique_RDC_V2_pdf_p1        objets 0 (41 s) | fiches 0 (59 s) : 0
+588782_DECHETTERIE-DCE-PLAN-EL01-A_pdf_p1                    objets 0 (164 s) | fiches 0 (14 s) : 0
+611480_CDG47_-_261023_Plans_DCE_Paysagistes_pdf_p11          objets 0 (2 s) | fiches 0 (1 s) : 0
+696398_2324-Hospices_Civils_de_Beaune_-_plans_DCE_pdf_p12    objets 0 (14 s) | fiches 0 (16 s) : 0
+696398_2324-Hospices_Civils_de_Beaune_-_plans_DCE_pdf_p6     objets 0 (7 s) | fiches 0 (3 s) : 0
+696398_Beaune_Logts_Rue_de_Lorraine_Plan_tous_niveaux_lot_p3 objets 0 (12 s) | fiches 0 (7 s) : 3
+696398_Beaune_Logts_Rue_de_Lorraine_Plan_tous_niveaux_lot_p6 objets 0 (31 s) | fiches 0 (13 s) : 5
+696398_Beaune_Logts_Rue_de_Lorraine_Plan_tous_niveaux_lot_p9 objets 0 (12 s) | fiches 0 (7 s) : 4
+945955_CLO_DCE_423_ARC_PLANS_DES_PLAFONDS_Ind2_pdf_p2        objets 0 (2 s) | fiches 0 (1 s) : 0
+TOTAL : 18 pages, 111 fiches

@@ -1,0 +1,4 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 9.5 m, ecrit 1/50 -> 21.0 m
+696398_Beaune_Logts_Rue_de_Lorraine_Plan_tous_niveaux_l objets  33998 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 29 s
+696398_Beaune_Logts_Rue_de_Lorraine_Plan_tous_nive fiches   5 (objets oui) | total 5
+FIN fiches 5

@@ -1,0 +1,3 @@
+548704_NDBR_DCE_DBS_Repérage_acoustique_RDC_V2_pdf_p1   objets 126263 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 40 s
+548704_NDBR_DCE_DBS_Repérage_acoustique_RDC_V2_pdf 0 piece sure
+FIN fiches 0

@@ -1,0 +1,3 @@
+243347_DINAN-FDE-DCE-PLAN_RDC_BAS_-_ZONE_OUEST_pdf_p1   objets  50731 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 67 s
+243347_DINAN-FDE-DCE-PLAN_RDC_BAS_-_ZONE_OUEST_pdf fiches   1 (objets oui) | total 1
+FIN fiches 1

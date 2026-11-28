@@ -1,0 +1,3 @@
+3105572_2503_DCE_PE_02_Plan_RDC_pdf_p1                  objets 191901 | limite   294 | pas limite   3867 | pieces sures : matiere 8, faces 0, pixels 0 | 196 s
+3105572_2503_DCE_PE_02_Plan_RDC_pdf_p1             fiches  47 (objets oui) | total 47
+FIN fiches 47

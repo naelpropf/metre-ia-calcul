@@ -1,0 +1,3 @@
+588782_DECHETTERIE-DCE-PLAN-EL01-A_pdf_p1               objets 103825 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 163 s
+588782_DECHETTERIE-DCE-PLAN-EL01-A_pdf_p1          0 piece sure
+FIN fiches 0

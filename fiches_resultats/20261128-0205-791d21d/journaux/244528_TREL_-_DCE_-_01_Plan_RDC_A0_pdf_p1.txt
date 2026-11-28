@@ -1,0 +1,3 @@
+244528_TREL_-_DCE_-_01_Plan_RDC_A0_pdf_p1               objets 153633 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 128 s
+244528_TREL_-_DCE_-_01_Plan_RDC_A0_pdf_p1          fiches   4 (objets oui) | total 4
+FIN fiches 4
