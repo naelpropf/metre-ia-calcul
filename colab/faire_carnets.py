@@ -5,7 +5,7 @@ Chaque carnet s'ouvre par https://colab.research.google.com/github/naelpropf/met
 import json, os
 
 ICI = os.path.dirname(os.path.abspath(__file__))
-LOTS = ["20261128-0048-d38d25f", "20261128-0205-791d21d"]
+LOTS = ["20261128-0048-d38d25f", "20261128-0205-791d21d", "20261128-1329-a1717dc", "20261128-1505-890df2d"]   # 28/11 apres-midi : +18 dossiers neufs (32 en tout)
 TOUS = "etiquette,murs,tri,contour"
 RUNS = {  # nom : (SUJETS, PAS)
     "specialiste_etiquette": ("etiquette", 300),
@@ -19,6 +19,8 @@ RUNS = {  # nom : (SUJETS, PAS)
     "base_tri_visuel": ("tri_visuel", 0),
     "specialiste_tri_visuel_v2": ("tri_visuel", 300, None, "EXAMEN_APPR=1"),   # chiffres lisibles (26 px) + couleurs nommees
     "specialiste_tri_visuel_x3": ("tri_visuel", 600, None, "EXAMEN_APPR=1 TIRAGES=3"),   # 3 tirages de traits par fiche
+    "tri_visuel_4b_large": ("tri_visuel", 300, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit", "EXAMEN_APPR=1"),   # 28/11 : 32 dossiers (contre 14), memes reglages
+    "tri_visuel_4b_large600": ("tri_visuel", 600, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit", "EXAMEN_APPR=1"),   # idem, 600 pas (~ autant de passages par fiche qu'avant)
     "specialiste_tri_visuel_4b": ("tri_visuel", 300, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit", "EXAMEN_APPR=1"),   # l'ancien exercice entier (plan + contour), relance de la v3 coupee a 03 h 28   # PAS=0 : modele de BASE sans entrainement (EXAMEN_SEUL)
 }
 PREP = "\n".join([
@@ -70,7 +72,7 @@ for nom, (sujets, pas, *opt) in RUNS.items():
 # 28/11 : KAGGLE DOUBLE = deux entrainements en meme temps dans UNE seance (une carte T4 chacun ; Kaggle compte le
 # temps de seance, pas le nombre de cartes -> deux fois plus de travail pour les memes 30 h). Journal entrelace,
 # chaque ligne prefixee [nom]. Paires : DOUBLES = {nom_du_carnet: (run_carte_0, run_carte_1)} (noms de RUNS).
-DOUBLES = {}
+DOUBLES = {"double_4b_large": ("tri_visuel_4b_large", "tri_visuel_4b_large600")}
 
 
 def commande(nom):
