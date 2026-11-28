@@ -10,7 +10,7 @@ k, n = map(int, sys.argv[1].split("/"))
 LIMITE = int(os.environ.get("LIMITE_PAGE", "2400"))   # s par etape et par page (une page bloquee ne bloque pas la part)
 filtre = os.environ.get("FILTRE", "").strip()
 pages = [f for d in ("plans_appr", "plans_appr_masse") for f in glob.glob(os.path.join(ici, d, "*.pdf"))
-         if os.path.basename(f).startswith(filtre)]
+         if os.path.basename(f).startswith(tuple(filtre.split(",")))]   # 28/11 : plusieurs debuts de nom, separes par des virgules
 pages.sort(key=lambda f: (-os.path.getsize(f), os.path.basename(f)))   # les plus lourdes d'abord, reparties a tour de role
 mes = pages[k - 1::n]
 print("part %d/%d : %d pages sur %d" % (k, n, len(mes), len(pages)), flush=True)
