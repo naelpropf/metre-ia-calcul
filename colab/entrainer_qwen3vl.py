@@ -27,7 +27,16 @@ FJ = [os.path.join(dp, f) for dp, _, fs in os.walk(racine) for f in fs if f == "
 BASE = os.path.dirname(FJ)
 fiches = [json.loads(l) for l in open(FJ, encoding="utf-8") if l.strip()]
 fiches = [f for f in fiches if f.get("v") == 2]
-dossier = lambda f: f["image"].split("/")[-1].split("_")[0]
+# 28/11 soir : BANQUE = dossier d'une banque de plans convertie (ex. CubiCasa5k, outil/cubicasa_vers_fiches.py) ; ses fiches
+# s'AJOUTENT a l'entrainement (jamais a l'examen : leurs dossiers commencent par « cc »). BANQUE_MAX = nombre maximum de fiches.
+if os.environ.get("BANQUE"):
+    _bj = [os.path.join(dp, f) for dp, _, fs in os.walk(os.environ["BANQUE"]) for f in fs if f == "exercices.jsonl"][0]
+    _bf = [json.loads(l) for l in open(_bj, encoding="utf-8") if l.strip()]
+    for _f in _bf: _f["image"] = os.path.join(os.path.dirname(_bj), _f["image"])   # chemin absolu : os.path.join(BASE, abs) = abs
+    _bf = [f for f in _bf if f.get("v") == 2][:int(os.environ.get("BANQUE_MAX", "1000000"))]
+    print("BANQUE :", _bj, "->", len(_bf), "fiches en plus", flush=True)
+    fiches += _bf
+dossier =lambda f: f["image"].split("/")[-1].split("_")[0]
 doss = sorted({dossier(f) for f in fiches})
 EXA = os.environ.get("DOSSIER_EXAMEN") or doss[-1]
 appr = [f for f in fiches if dossier(f) != EXA]; exa = [f for f in fiches if dossier(f) == EXA]
@@ -155,6 +164,33 @@ except Exception:
 NOMS_COULEURS = ["rouge", "vert", "bleu", "orange", "violet", "rose"]
 
 
+RAISON = os.environ.get("RAISON") == "1"
+
+
+def ou_est(f, t):
+    """28/11 soir : position du trait t par rapport au contour de la piece (millimes, meme repere) -- comme le metreur :
+    un mur LONGE le bord, un objet est DEDANS, une cote TRAVERSE la piece. Decrit ce qu'on voit, pas la classe."""
+    C = [p for p in (f.get("contour") or []) if isinstance(p, list) and len(p) >= 2]
+    if len(C) < 3: return "pres de la piece"
+    def dedans(x, y):
+        r = False
+        for (x1, y1), (x2, y2) in zip(C, C[1:] + C[:1]):
+            if (y1 > y) != (y2 > y) and x < x1 + (y - y1) * (x2 - x1) / (y2 - y1): r = not r
+        return r
+    def d_bord(x, y):
+        m = 1e9
+        for (x1, y1), (x2, y2) in zip(C, C[1:] + C[:1]):
+            L = (x2 - x1) ** 2 + (y2 - y1) ** 2 or 1; u = max(0, min(1, ((x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)) / L))
+            m = min(m, math.hypot(x - x1 - u * (x2 - x1), y - y1 - u * (y2 - y1)))
+        return m
+    P = [(t[0] + (t[2] - t[0]) * k / 4, t[1] + (t[3] - t[1]) * k / 4) for k in range(5)]
+    if sum(d_bord(x, y) <= 20 for x, y in P) >= 3: return "sur le bord de la piece"
+    dd = [dedans(x, y) for x, y in P]
+    if all(dd): return "a l'interieur de la piece"
+    if any(dd): return "traverse la piece"
+    return "en dehors de la piece"
+
+
 def nom(f):
     m = re.search(r"«\s*(.+?)\s*»", f["question"]); return m.group(1) if m else "?"
 
@@ -200,6 +236,12 @@ def exemple(f, s, t=0):
         debut = ("Sur l'image, %d traits sont entoures d'un cadre de couleur et numerotes (1 a %d, le numero est a cote "
                  "du cadre) ; la piece « %s » est autour. " if DESSIN == "cadre" else
                  "Sur l'image, %d traits sont surlignes en couleur et numerotes (1 a %d) ; la piece « %s » est autour. ")
+        if RAISON:   # 28/11 soir : l'IA dit OU est le trait par rapport a la piece AVANT de conclure -> on lit sa pensee
+            return (tete + (debut + "Les traits : %s. Pour chaque trait numerote, dis d'abord ou il est par rapport a la piece "
+                    "(sur le bord, a l'interieur, traverse la piece, ou dehors), puis si c'est un MUR, un OBJET a l'interieur "
+                    "(mobilier, equipement) ou une ligne de COTE. Reponds : 1 : sur le bord de la piece -> MUR ; 2 : ...")
+                    % (len(T), len(T), nom(f), ", ".join("%d = %s" % (i + 1, NOMS_COULEURS[i % 6]) for i in range(len(T)))),
+                    " ; ".join("%d : %s -> %s" % (i + 1, ou_est(f, t), e) for i, (t, e) in enumerate(T)))
         return (tete + (debut + "Les traits : %s. Pour chaque trait numerote, dis si c'est un MUR, un OBJET a l'interieur (mobilier, "
                 "equipement) ou une ligne de COTE. Reponds : 1 : MUR ; 2 : OBJET ; ...")
                 % (len(T), len(T), nom(f), ", ".join("%d = %s" % (i + 1, NOMS_COULEURS[i % 6]) for i in range(len(T)))),
@@ -246,7 +288,8 @@ def noter(f, s, rep):
         return F1, F1 >= 0.8
     if s == "tri_visuel":
         T = marques(f); dit = {}
-        for i, e in re.findall(r"(\d+)\s*:\s*(MUR|OBJET|COTE)", rep): dit.setdefault(int(i) - 1, e)
+        # 28/11 soir : avec RAISON=1 la reponse est « 1 : sur le bord de la piece -> MUR ; ... » (raison avant le mot)
+        for i, e in re.findall(r"(\d+)\s*:[^;:]*?(MUR|OBJET|COTE)", rep): dit.setdefault(int(i) - 1, e)
         bon = sum(dit.get(i) == e for i, (_, e) in enumerate(T)) / len(T)
         return bon, bon == 1.0
     if s == "tri":
@@ -295,8 +338,55 @@ if not EXAMEN_SEUL:   # 28/11 : EXAMEN_SEUL=<dossier lora> -> pas d'entrainement
     print("exercices d'entrainement :", len(data), "| sujets :", SUJETS, flush=True)
     from unsloth.trainer import UnslothVisionDataCollator
     from trl import SFTTrainer, SFTConfig
+    from transformers import TrainerCallback
+    # 28/11 soir : SUIVI DE LA PENSEE PENDANT L'ENTRAINEMENT (demande du porteur : voir les problemes a meme sa pensee, sans
+    # un test par cause). Tous les SUIVI_PAS pas (et au pas 0) : l'IA repond aux MEMES 6 fiches d'examen + 4 d'entrainement ;
+    # tout est ecrit dans suivi_pensee.jsonl et au journal (lignes « SUIVI »). Avec RAISON=1 on separe deux erreurs :
+    #   VOIR  : elle place mal le trait (bord / interieur / traverse / dehors) -> probleme de lecture de l'image ;
+    #   DECIDER : elle le place bien mais conclut mal -> probleme de logique (bord -> mur, dedans -> objet, traverse -> cote).
+    SUIVI = int(os.environ.get("SUIVI_PAS", "0")); cbs = []
+    if SUIVI and "tri_visuel" in SUJETS:
+        SUIVI_F = [("examen", g) for g in [h for h in exa if valable(h, "tri_visuel")][:6]] + \
+                  [("appr", g) for g in [h for h in appr if valable(h, "tri_visuel")][:4]]
+        g_suivi = open(os.path.join(SORTIE, "suivi_pensee.jsonl"), "w", encoding="utf-8")
+        POS = r"(sur le bord|a l'interieur|traverse|en dehors|pres de)"
+
+        def sonder(pas):
+            try:
+                FastVisionModel.for_inference(model); B = {"examen": [], "appr": []}; vu = [0, 0]; dec = [0, 0]
+                for cle, f in SUIVI_F:
+                    im = dessiner(Image.open(os.path.join(BASE, f["image"])).convert("RGB"), marques(f)); q, c = exemple(f, "tri_visuel")
+                    txt = tok.apply_chat_template([{"role": "user", "content": [{"type": "text", "text": q}, {"type": "image"}]}], add_generation_prompt=True)
+                    x = tok(im, txt, add_special_tokens=False, return_tensors="pt").to("cuda")
+                    with torch.no_grad():
+                        out = model.generate(**x, max_new_tokens=220 if RAISON else 60, do_sample=False, use_cache=True)
+                    rep = tok.decode(out[0][x["input_ids"].shape[1]:], skip_special_tokens=True)
+                    note, _ = noter(f, "tri_visuel", rep); B[cle].append(note)
+                    if RAISON:   # VOIR (position juste ?) et DECIDER (classe juste quand la position est juste ?)
+                        T = marques(f); ses = dict((int(i) - 1, (p, e)) for i, p, e in re.findall(r"(\d+)\s*:\s*[^;]*?" + POS + r"[^;]*?(MUR|OBJET|COTE)", rep))
+                        for i, (t, e) in enumerate(T):
+                            if i in ses:
+                                okp = ou_est(f, t).startswith(ses[i][0]); vu[0] += okp; vu[1] += 1
+                                if okp: dec[0] += ses[i][1] == e; dec[1] += 1
+                    g_suivi.write(json.dumps({"pas": pas, "cle": cle, "image": f["image"], "reponse": rep, "attendu": c, "note": note}, ensure_ascii=False) + "\n")
+                    print("SUIVI pas %d | %-6s %-28s note %.2f | IA : %s | VRAI : %s" % (pas, cle, f["image"].split("/")[-1][:28], note,
+                          rep[:240].replace("\n", " / "), c[:240]), flush=True)
+                g_suivi.flush()
+                print("SUIVI pas %d | BILAN examen %.2f | appr %.2f%s" % (pas, sum(B["examen"]) / max(1, len(B["examen"])),
+                      sum(B["appr"]) / max(1, len(B["appr"])), (" | VOIR (position juste) %d/%d | DECIDER (classe juste si position juste) %d/%d"
+                      % (vu[0], vu[1], dec[0], dec[1])) if RAISON else ""), flush=True)
+            except Exception as ex:
+                print("SUIVI ERREUR pas %d : %s" % (pas, str(ex)[:300]), flush=True)
+            finally:
+                FastVisionModel.for_training(model)
+
+        class Suivi(TrainerCallback):
+            def on_train_begin(self, args, state, control, **kw): sonder(0)
+            def on_step_end(self, args, state, control, **kw):
+                if state.global_step % SUIVI == 0: sonder(state.global_step)
+        cbs = [Suivi()]
     FastVisionModel.for_training(model)
-    tr = SFTTrainer(model=model, tokenizer=tok, data_collator=UnslothVisionDataCollator(model, tok, resize=os.environ.get("RESIZE", "max")), train_dataset=data,
+    tr = SFTTrainer(model=model, tokenizer=tok, callbacks=cbs, data_collator=UnslothVisionDataCollator(model, tok, resize=os.environ.get("RESIZE", "max")), train_dataset=data,
                     args=SFTConfig(per_device_train_batch_size=2, gradient_accumulation_steps=4, warmup_steps=5, max_steps=PAS,
                                    learning_rate=LR, logging_steps=5, max_grad_norm=1.0, optim="adamw_8bit", weight_decay=0.01,
                                    lr_scheduler_type="linear", seed=3407, output_dir=os.path.join(SORTIE, "points"),
@@ -346,7 +436,7 @@ for cle, s, lot in EXS:
         txt = tok.apply_chat_template(m, add_generation_prompt=True)
         x = tok(im, txt, add_special_tokens=False, return_tensors="pt").to("cuda")
         arret = ArretListe(x["input_ids"].shape[1], FIN[s], "REPONSE" if s == "tout" else None)
-        out = model.generate(**x, max_new_tokens=900 if s in ("tout", "contour") else (80 if s == "tri_visuel" else 400), use_cache=True, do_sample=False,
+        out = model.generate(**x, max_new_tokens=900 if s in ("tout", "contour") else ((220 if RAISON else 80) if s == "tri_visuel" else 400), use_cache=True, do_sample=False,
                              repetition_penalty=1.05, no_repeat_ngram_size=12,
                              stopping_criteria=StoppingCriteriaList([arret]) if FIN[s] and os.environ.get("ARRET_CONTOUR", "1") == "1" else None)
         rep = tok.decode(out[0][x["input_ids"].shape[1]:], skip_special_tokens=True)
