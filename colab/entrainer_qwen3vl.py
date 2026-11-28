@@ -103,9 +103,19 @@ def dessiner(im, T):
     im = im.copy(); d = ImageDraw.Draw(im); W, H = im.size
     for i, (t, _) in enumerate(T):
         x0, y0, x1, y1 = t[0] * W / 1000, t[1] * H / 1000, t[2] * W / 1000, t[3] * H / 1000; c = COULEURS[i % 6]
-        d.line([x0, y0, x1, y1], fill=c, width=4); mx, my = (x0 + x1) / 2, (y0 + y1) / 2
-        d.rectangle([mx - 8, my - 9, mx + 8, my + 9], fill=c); d.text((mx - 3, my - 6), str(i + 1), fill=(255, 255, 255))
+        d.line([x0, y0, x1, y1], fill=c, width=5); mx, my = (x0 + x1) / 2, (y0 + y1) / 2
+        # 28/11 : chiffre de 8 px (~5 px apres reduction a 512) = illisible -> specialiste 3/16 ; chiffre de 26 px
+        d.rectangle([mx - 17, my - 17, mx + 17, my + 17], fill=c, outline=(0, 0, 0), width=2)
+        d.text((mx, my), str(i + 1), fill=(255, 255, 255), font=POLICE, anchor="mm")
     return im
+
+
+try:
+    from PIL import ImageFont
+    POLICE = ImageFont.load_default(size=26)
+except Exception:
+    POLICE = None
+NOMS_COULEURS = ["rouge", "vert", "bleu", "orange", "violet", "rose"]
 
 
 def nom(f):
@@ -151,8 +161,9 @@ def exemple(f, s):
     if s == "tri_visuel":
         T = marques(f)
         return (tete + "Sur l'image, %d traits sont surlignes en couleur et numerotes (1 a %d) ; la piece « %s » est autour. "
-                "Pour chaque trait numerote, dis si c'est un MUR, un OBJET a l'interieur (mobilier, equipement) ou une ligne "
-                "de COTE. Reponds : 1 : MUR ; 2 : OBJET ; ..." % (len(T), len(T), nom(f)),
+                "Les traits : %s. Pour chaque trait numerote, dis si c'est un MUR, un OBJET a l'interieur (mobilier, "
+                "equipement) ou une ligne de COTE. Reponds : 1 : MUR ; 2 : OBJET ; ..."
+                % (len(T), len(T), nom(f), ", ".join("%d = %s" % (i + 1, NOMS_COULEURS[i % 6]) for i in range(len(T)))),
                 " ; ".join("%d : %s" % (i + 1, e) for i, (_, e) in enumerate(T)))
     if s == "contour":
         c = points(f.get("contour") or liste_apres(f["reponse"], "Contour"))
@@ -279,9 +290,12 @@ class ArretListe(StoppingCriteria):
 
 g_inc = open(os.path.join(SORTIE, "examen_modele.jsonl"), "w", encoding="utf-8")   # ecrit au fur et a mesure
 res = []; bilan = {}
-for s in os.environ.get("EXAMEN_SUJETS", ",".join(SUJETS)).split(","):
+# 28/11 : EXAMEN_APPR=1 -> note aussi 16 fiches D'ENTRAINEMENT (« appr:<sujet> ») : appris par coeur ou rien appris ?
+EXS = [(s, s, exa) for s in os.environ.get("EXAMEN_SUJETS", ",".join(SUJETS)).split(",")]
+if os.environ.get("EXAMEN_APPR") == "1": EXS += [("appr:" + s, s, appr) for s, _, _ in EXS]
+for cle, s, lot in EXS:
     n_ok = 0; notes = []
-    for f in [g for g in exa if valable(g, s)][:N_EXA]:
+    for f in [g for g in lot if valable(g, s)][:N_EXA]:
         im = Image.open(os.path.join(BASE, f["image"])).convert("RGB"); q, _ = exemple(f, s)
         if s == "tri_visuel": im = dessiner(im, marques(f))
         m = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": q}]}]
@@ -293,14 +307,14 @@ for s in os.environ.get("EXAMEN_SUJETS", ",".join(SUJETS)).split(","):
                              stopping_criteria=StoppingCriteriaList([arret]) if FIN[s] and os.environ.get("ARRET_CONTOUR", "1") == "1" else None)
         rep = tok.decode(out[0][x["input_ids"].shape[1]:], skip_special_tokens=True)
         note, juste = noter(f, s, rep); n_ok += juste; notes.append(note)
-        res.append({"sujet": s, "image": f["image"], "legende": f["legende"], "question": q, "reponse": rep,
+        res.append({"sujet": cle, "image": f["image"], "legende": f["legende"], "question": q, "reponse": rep,
                     "note": note, "juste": juste, "surface_ecrite": surface_ecrite(f), "v": "modele",
                     "plan": rep.split("REPONSE :")[0].replace("PLAN :", "").strip() if s == "tout" else "",
                     "juste_1pc": juste if s in ("tout", "contour") else None})
         g_inc.write(json.dumps(res[-1], ensure_ascii=False) + "\n"); g_inc.flush()
-        print("%-9s %-46s note %.2f %s | %s" % (s, f["image"][4:50], note, "JUSTE" if juste else "", rep[:160].replace("\n", " / ")), flush=True)
-    bilan[s] = {"fiches": len(notes), "justes": n_ok, "note_moyenne": round(sum(notes) / len(notes), 3) if notes else None}
-    print("EXAMEN %s dossier %s : %d fiches | justes : %d | note moyenne %s" % (s, EXA, len(notes), n_ok, bilan[s]["note_moyenne"]), flush=True)
+        print("%-9s %-46s note %.2f %s | %s" % (cle, f["image"][4:50], note, "JUSTE" if juste else "", rep[:160].replace("\n", " / ")), flush=True)
+    bilan[cle] = {"fiches": len(notes), "justes": n_ok, "note_moyenne": round(sum(notes) / len(notes), 3) if notes else None}
+    print("EXAMEN %s dossier %s : %d fiches | justes : %d | note moyenne %s" % (cle, EXA, len(notes), n_ok, bilan[cle]["note_moyenne"]), flush=True)
 json.dump(res, open(os.path.join(SORTIE, "examen_modele.json"), "w", encoding="utf-8"), ensure_ascii=False)
 json.dump(bilan, open(os.path.join(SORTIE, "bilan_sujets.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 g_inc.close()

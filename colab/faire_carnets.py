@@ -17,6 +17,7 @@ RUNS = {  # nom : (SUJETS, PAS)
     "tout_v3": ("tout", 300),
     "specialiste_tri_visuel": ("tri_visuel", 300),   # 28/11 : traits dessines et numerotes, l'IA dit MUR / OBJET / COTE
     "base_tri_visuel": ("tri_visuel", 0),
+    "specialiste_tri_visuel_v2": ("tri_visuel", 300, None, "EXAMEN_APPR=1"),   # chiffres lisibles (26 px) + couleurs nommees
     "specialiste_tri_visuel_4b": ("tri_visuel", 300, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit"),   # l'ancien exercice entier (plan + contour), relance de la v3 coupee a 03 h 28   # PAS=0 : modele de BASE sans entrainement (EXAMEN_SEUL)
 }
 PREP = "\n".join([
@@ -33,9 +34,11 @@ def cellule(src):
     return {"cell_type": "code", "execution_count": None, "metadata": {}, "outputs": [], "source": src.splitlines(True)}
 
 
-for nom, (sujets, pas, *modele) in RUNS.items():
+for nom, (sujets, pas, *opt) in RUNS.items():
+    modele = [opt[0]] if opt and opt[0] else []
     seul = "EXAMEN_SEUL=unsloth/Qwen3-VL-2B-Instruct-unsloth-bnb-4bit " if pas == 0 else ""
     if modele: seul += "MODELE=%s " % modele[0]
+    if len(opt) > 1: seul += opt[1] + " "
     lance = ("!cd /content && %sSUJETS=%s PAS=%d DOSSIER_EXAMEN=696398 EXAMEN_SUJETS=%s ENTREE=/content SORTIE=/content/sortie_%s "
              "python depot/colab/entrainer_qwen3vl.py 2>&1 | tee /content/run.log" % (seul, sujets, pas, sujets if (pas == 0 or sujets in ("tout", "tri_visuel")) else TOUS, nom))
     nb = {"nbformat": 4, "nbformat_minor": 0,
