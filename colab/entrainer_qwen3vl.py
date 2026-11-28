@@ -301,7 +301,8 @@ for cle, s, lot in EXS:
     for f in [g for g in lot if valable(g, s)][:N_EXA]:
         im = Image.open(os.path.join(BASE, f["image"])).convert("RGB"); q, _ = exemple(f, s)
         if s == "tri_visuel": im = dessiner(im, marques(f))
-        m = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": q}]}]
+        # 28/11 : MEME ORDRE qu'a l'entrainement (texte puis image) ; avant : image puis texte (carnet unsloth) = decalage
+        m = [{"role": "user", "content": [{"type": "text", "text": q}, {"type": "image"}]}]
         txt = tok.apply_chat_template(m, add_generation_prompt=True)
         x = tok(im, txt, add_special_tokens=False, return_tensors="pt").to("cuda")
         arret = ArretListe(x["input_ids"].shape[1], FIN[s], "REPONSE" if s == "tout" else None)
