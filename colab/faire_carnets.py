@@ -18,7 +18,7 @@ RUNS = {  # nom : (SUJETS, PAS)
     "specialiste_tri_visuel": ("tri_visuel", 300),   # 28/11 : traits dessines et numerotes, l'IA dit MUR / OBJET / COTE
     "base_tri_visuel": ("tri_visuel", 0),
     "specialiste_tri_visuel_v2": ("tri_visuel", 300, None, "EXAMEN_APPR=1"),   # chiffres lisibles (26 px) + couleurs nommees
-    "specialiste_tri_visuel_4b": ("tri_visuel", 300, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit"),   # l'ancien exercice entier (plan + contour), relance de la v3 coupee a 03 h 28   # PAS=0 : modele de BASE sans entrainement (EXAMEN_SEUL)
+    "specialiste_tri_visuel_4b": ("tri_visuel", 300, "unsloth/Qwen3-VL-4B-Instruct-unsloth-bnb-4bit", "EXAMEN_APPR=1"),   # l'ancien exercice entier (plan + contour), relance de la v3 coupee a 03 h 28   # PAS=0 : modele de BASE sans entrainement (EXAMEN_SEUL)
 }
 PREP = "\n".join([
     "!nvidia-smi -L",

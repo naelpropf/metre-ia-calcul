@@ -256,7 +256,7 @@ if not EXAMEN_SEUL:   # 28/11 : EXAMEN_SEUL=<dossier lora> -> pas d'entrainement
     from unsloth.trainer import UnslothVisionDataCollator
     from trl import SFTTrainer, SFTConfig
     FastVisionModel.for_training(model)
-    tr = SFTTrainer(model=model, tokenizer=tok, data_collator=UnslothVisionDataCollator(model, tok), train_dataset=data,
+    tr = SFTTrainer(model=model, tokenizer=tok, data_collator=UnslothVisionDataCollator(model, tok, resize=os.environ.get("RESIZE", "max")), train_dataset=data,
                     args=SFTConfig(per_device_train_batch_size=2, gradient_accumulation_steps=4, warmup_steps=5, max_steps=PAS,
                                    learning_rate=LR, logging_steps=5, max_grad_norm=1.0, optim="adamw_8bit", weight_decay=0.01,
                                    lr_scheduler_type="linear", seed=3407, output_dir=os.path.join(SORTIE, "points"),
@@ -270,6 +270,9 @@ if not EXAMEN_SEUL:   # 28/11 : EXAMEN_SEUL=<dossier lora> -> pas d'entrainement
         if "loss" in h: print("pas %s | perte %.3f | grad %s" % (h.get("step"), h["loss"], h.get("grad_norm")), flush=True)
     model.save_pretrained(os.path.join(SORTIE, "lora")); tok.save_pretrained(os.path.join(SORTIE, "lora"))
 
+# 28/11 matin : CAUSE TROUVEE -- unsloth reduisait les images a 512 px de large a l'ENTRAINEMENT (resize="min" par defaut)
+# alors que l'examen les passe ENTIERES (jusqu'a 768 px) -> echelle differente entre apprentissage et examen, depuis la v1.
+# Desormais RESIZE=max (aucune reduction) : meme image a l'entrainement et a l'examen.
 # 3) examen sur le dossier jamais vu, SUJET PAR SUJET (28/11) : tout / contour = surface du contour de l'IA a 1 % de
 # l'ecrit ; etiquette = a 20 millimes ; murs = F1 >= 0,8 (trait retrouve a 15 millimes) ; tri = tous les traits bien ranges.
 # EXAMEN_SUJETS=etiquette,murs,tri,contour pour noter un specialiste aussi sur les autres sujets (defaut : ses SUJETS).
