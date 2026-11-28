@@ -1,0 +1,4 @@
+  ECHELLE corrigee (garde-fou) : cotes -> page de 4.9 m, ecrit 1/50 -> 45.0 m
+589199_DCE_Carnets_de_plans_pdf_p48                     objets  41382 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 55 s
+589199_DCE_Carnets_de_plans_pdf_p48                fiches   4 (objets oui) | total 4
+FIN fiches 4

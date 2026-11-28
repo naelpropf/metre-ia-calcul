@@ -1,0 +1,3 @@
+589199_DCE_Carnets_de_plans_pdf_p49                     objets 262110 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 1539 s
+589199_DCE_Carnets_de_plans_pdf_p49                0 piece sure
+FIN fiches 0

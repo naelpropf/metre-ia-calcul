@@ -1,0 +1,3 @@
+3111862_24052_064A_DCE_EXISTANT_A0_Plan_R_1_pdf_p1      objets  60922 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 20 s
+3111862_24052_064A_DCE_EXISTANT_A0_Plan_R_1_pdf_p1 fiches  17 (objets oui) | total 17
+FIN fiches 17

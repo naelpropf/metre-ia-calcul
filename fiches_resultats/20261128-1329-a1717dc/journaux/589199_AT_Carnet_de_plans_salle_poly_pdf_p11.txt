@@ -1,0 +1,3 @@
+589199_AT_Carnet_de_plans_salle_poly_pdf_p11            objets   8613 | limite     0 | pas limite      0 | pieces sures : matiere 0, faces 0, pixels 0 | 1 s
+589199_AT_Carnet_de_plans_salle_poly_pdf_p11       0 piece sure
+FIN fiches 0
