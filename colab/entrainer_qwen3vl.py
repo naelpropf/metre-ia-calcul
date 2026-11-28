@@ -89,8 +89,9 @@ FIN = {"tout": "Contour", "etiquette": "ETIQUETTE", "murs": "MURS", "tri": "COTE
 COULEURS = [(230, 25, 75), (60, 180, 75), (0, 130, 200), (245, 130, 48), (145, 30, 180), (240, 50, 230)]
 
 
-def marques(f):
-    p = f["pensee"]; r = random.Random(f["image"] + "tv")
+def marques(f, t=0):
+    """t = numero du tirage (28/11 : TIRAGES=3 -> 3 choix de traits differents par fiche ; t=0 = celui de l'examen)."""
+    p = f["pensee"]; r = random.Random(f["image"] + "tv" + (str(t) if t else ""))
     def pris(L, k):
         L = [t for t in L if isinstance(t, list) and len(t) >= 4]; r.shuffle(L); return L[:k]
     T = [(t, "MUR") for t in pris(p.get("murs", []), 2)] + [(t, "OBJET") for t in pris(p.get("exclus", []), 2)] + \
@@ -139,7 +140,7 @@ def valable(f, s):
     return False
 
 
-def exemple(f, s):
+def exemple(f, s, t=0):
     """(question, cible) de la fiche f pour le sujet s."""
     if s == "tout": return question(f), cible(f)
     p = f["pensee"]; S = surface_ecrite(f); tete = "%s\n\n" % f["legende"]
@@ -159,7 +160,7 @@ def exemple(f, s):
         c = " ; ".join("%sS : %s" % (k, json.dumps([i for i, (_, e) in enumerate(T) if e == k])) for k in ("MUR", "OBJET", "COTE"))
         return q, c
     if s == "tri_visuel":
-        T = marques(f)
+        T = marques(f, t)
         return (tete + "Sur l'image, %d traits sont surlignes en couleur et numerotes (1 a %d) ; la piece « %s » est autour. "
                 "Les traits : %s. Pour chaque trait numerote, dis si c'est un MUR, un OBJET a l'interieur (mobilier, "
                 "equipement) ou une ligne de COTE. Reponds : 1 : MUR ; 2 : OBJET ; ..."
@@ -241,16 +242,17 @@ else:
                                            r=16, lora_alpha=16, lora_dropout=0, bias="none", random_state=3407)
 
 
-def msg(f, s="tout", avec_reponse=True):
-    im = Image.open(os.path.join(BASE, f["image"])).convert("RGB"); q, c = exemple(f, s)
-    if s == "tri_visuel": im = dessiner(im, marques(f))
+def msg(f, s="tout", avec_reponse=True, t=0):
+    im = Image.open(os.path.join(BASE, f["image"])).convert("RGB"); q, c = exemple(f, s, t)
+    if s == "tri_visuel": im = dessiner(im, marques(f, t))
     m = [{"role": "user", "content": [{"type": "text", "text": q}, {"type": "image", "image": im}]}]
     if avec_reponse: m.append({"role": "assistant", "content": [{"type": "text", "text": c}]})
     return {"messages": m}
 
 
 if not EXAMEN_SEUL:   # 28/11 : EXAMEN_SEUL=<dossier lora> -> pas d'entrainement, examen de l'IA deja entrainee
-    data = [msg(f, s) for s in SUJETS for f in appr if valable(f, s)]
+    TIRAGES = int(os.environ.get("TIRAGES", "1"))
+    data = [msg(f, s, t=t) for s in SUJETS for f in appr if valable(f, s) for t in range(TIRAGES if s == "tri_visuel" else 1)]
     random.Random(3407).shuffle(data)
     print("exercices d'entrainement :", len(data), "| sujets :", SUJETS, flush=True)
     from unsloth.trainer import UnslothVisionDataCollator
