@@ -55,4 +55,13 @@ for nom, (sujets, pas, *opt) in RUNS.items():
                     cellule(VERIF), cellule(PREP), cellule(lance)]}
     nb["cells"][0]["cell_type"] = "markdown"; del nb["cells"][0]["execution_count"]; del nb["cells"][0]["outputs"]
     json.dump(nb, open(os.path.join(ICI, nom + ".ipynb"), "w", encoding="utf-8"), indent=1, ensure_ascii=False)
+    # 28/11 : meme carnet pour KAGGLE (1 seul compte, 30 h de GPU par semaine) : une seule carte (unsloth n'en veut
+    # qu'une, Kaggle en donne 2 x T4), dossier /content cree ; a importer par File > Import Notebook > GitHub
+    kg = json.loads(json.dumps(nb))
+    kg["metadata"] = {"kernelspec": {"name": "python3", "display_name": "Python 3", "language": "python"},
+                      "language_info": {"name": "python"},
+                      "kaggle": {"accelerator": "nvidiaTeslaT4", "isInternetEnabled": True, "isGpuEnabled": True}}
+    kg["cells"].insert(1, cellule("import os\nos.environ['CUDA_VISIBLE_DEVICES'] = '0'   # une seule carte\n"
+                                  "os.makedirs('/content', exist_ok=True)"))
+    json.dump(kg, open(os.path.join(ICI, "kaggle_" + nom + ".ipynb"), "w", encoding="utf-8"), indent=1, ensure_ascii=False)
     print("ecrit", nom + ".ipynb")
