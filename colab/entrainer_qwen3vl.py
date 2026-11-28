@@ -79,7 +79,105 @@ def surface_ecrite(f):
     return float(re.search(r"surface ecrite ([\d.]+)", f["plan"]).group(1))
 
 
+# 28/11 : SUJETS = entrainement DECOUPE (idee du porteur : des specialistes, puis on fusionne). Chaque fiche donne un
+# exercice par sujet : tout (l'ancien, plan + contour), etiquette (ou est-elle), murs (lesquels entourent la piece),
+# tri (mur / objet interieur / cote), contour (murs donnes -> fermer le contour). SUJETS=murs,tri = melange de deux.
+SUJETS = os.environ.get("SUJETS", "tout").split(",")
+FIN = {"tout": "Contour", "etiquette": "ETIQUETTE", "murs": "MURS", "tri": "COTES", "contour": "Contour"}
+
+
+def nom(f):
+    m = re.search(r"«\s*(.+?)\s*»", f["question"]); return m.group(1) if m else "?"
+
+
+def traits_tri(f):
+    p = f["pensee"]; T = [(t, "MUR") for t in p["murs"]] + [(t, "OBJET") for t in p["exclus"]] + [(t, "COTE") for t in p["cotes"]]
+    random.Random(f["image"]).shuffle(T); return T
+
+
+def valable(f, s):
+    if s == "tout": return True
+    p = f.get("pensee") or {}
+    if s == "etiquette": return bool(p.get("etiquette"))
+    if s == "murs": return bool(p.get("murs")) and bool(p.get("etiquette"))
+    if s == "tri": return len(traits_tri(f)) >= 2 if p else False
+    if s == "contour": return bool(p.get("murs")) and len(points(f.get("contour") or liste_apres(f["reponse"], "Contour") or [])) >= 3
+    return False
+
+
+def exemple(f, s):
+    """(question, cible) de la fiche f pour le sujet s."""
+    if s == "tout": return question(f), cible(f)
+    p = f["pensee"]; S = surface_ecrite(f); tete = "%s\n\n" % f["legende"]
+    if s == "etiquette":
+        return (tete + "Trouve sur cet extrait de plan l'etiquette de la piece « %s » (%.2f m2 ecrits). Reponds : "
+                "ETIQUETTE : [x, y] en millimes de l'image." % (nom(f), S), "ETIQUETTE : %s" % json.dumps(p["etiquette"]))
+    if s == "murs":
+        return (tete + "La piece « %s » (%.2f m2 ecrits) a son etiquette en %s. Donne les traits de MUR qui l'entourent, "
+                "(x0, y0, x1, y1) en millimes de l'image. Reponds : MURS : [[x0, y0, x1, y1], ...]"
+                % (nom(f), S, json.dumps(p["etiquette"])), "MURS : %s" % json.dumps(p["murs"]))
+    if s == "tri":
+        T = traits_tri(f)
+        q = (tete + "Autour de la piece « %s », voici des traits (x0, y0, x1, y1) en millimes de l'image : %s. Pour chacun, "
+             "dis si c'est un MUR, un OBJET a l'interieur (mobilier, equipement) ou une ligne de COTE. Reponds : "
+             "MURS : [numeros] ; OBJETS : [numeros] ; COTES : [numeros]"
+             % (nom(f), " ; ".join("%d : %s" % (i, json.dumps(t)) for i, (t, _) in enumerate(T))))
+        c = " ; ".join("%sS : %s" % (k, json.dumps([i for i, (_, e) in enumerate(T) if e == k])) for k in ("MUR", "OBJET", "COTE"))
+        return q, c
+    if s == "contour":
+        c = points(f.get("contour") or liste_apres(f["reponse"], "Contour"))
+        return (tete + "La piece « %s » (%.2f m2 ecrits), etiquette en %s. Ses murs (x0, y0, x1, y1) : %s ; portes a fermer "
+                "au droit du mur : %s. Donne son contour au nu interieur des murs. Reponds : Contour de la piece (millimes "
+                "de l'image, x puis y) : [[x, y], ...]" % (nom(f), S, json.dumps(p["etiquette"]), json.dumps(p["murs"]),
+                                                          json.dumps(p.get("portes") or [])),
+                "Contour de la piece (millimes de l'image, x puis y) : %s" % json.dumps([[round(x), round(y)] for x, y in c]))
+
+
+def meme_trait(a, b, tol=15):
+    try:
+        a, b = [float(v) for v in a[:4]], [float(v) for v in b[:4]]
+    except Exception:
+        return False
+    d = lambda u, v: max(abs(u[0] - v[0]), abs(u[1] - v[1]), abs(u[2] - v[2]), abs(u[3] - v[3]))
+    return min(d(a, b), d(a, b[2:] + b[:2])) <= tol
+
+
+def noter(f, s, rep):
+    """note de 0 a 1 et juste (bool) de la reponse rep de l'IA, pour le sujet s (tout / contour : surface a 1 %)."""
+    p = f.get("pensee") or {}
+    if s in ("tout", "contour"):
+        vrai = f.get("contour") or liste_apres(f["reponse"], "Contour"); S = surface_ecrite(f)
+        k2 = S / aire(vrai) if aire(vrai) else 0
+        sien = liste_apres(rep.split("REPONSE :")[-1], "Contour") or []
+        Sm = aire(sien) * k2 if len(points(sien)) >= 3 else None
+        e = abs(Sm / S - 1) if Sm else 1.0
+        return max(0.0, 1 - e / 0.1), e <= 0.01
+    if s == "etiquette":
+        e = liste_apres(rep, "ETIQUETTE")
+        try: d = math.dist([float(v) for v in e[:2]], p["etiquette"])
+        except Exception: d = 999
+        return max(0.0, 1 - d / 60), d <= 20
+    if s == "murs":
+        sien = liste_apres(rep, "MURS") or []; sien = [t for t in sien if isinstance(t, list) and len(t) >= 4]
+        if not sien: return 0.0, False
+        r = sum(any(meme_trait(t, u) for u in sien) for t in p["murs"]) / len(p["murs"])
+        q = sum(any(meme_trait(u, t) for t in p["murs"]) for u in sien) / len(sien)
+        F1 = 2 * r * q / (r + q) if r + q else 0.0
+        return F1, F1 >= 0.8
+    if s == "tri":
+        T = traits_tri(f); dit = {}
+        for k in ("MUR", "OBJET", "COTE"):
+            for i in (liste_apres(rep, k + "S") or []):
+                if isinstance(i, int): dit.setdefault(i, k)
+        bon = sum(dit.get(i) == e for i, (_, e) in enumerate(T)) / len(T)
+        return bon, bon == 1.0
+
+
 if SEC:
+    for s in SUJETS:
+        ok = [f for f in appr if valable(f, s)]; f = ok[0]; q, c = exemple(f, s)
+        print("=== sujet %s : %d fiches d'entrainement, %d d'examen ===\n%s\n>>> %s\n(note de la cible juste : %s)"
+              % (s, len(ok), sum(valable(g, s) for g in exa), q[-500:], c[:400], noter(f, s, c)))
     f = appr[0]; print("--- exemple ---\n", question(f)[:400], "\n>>>\n", cible(f)[:600])
     c = f.get("contour") or liste_apres(f["reponse"], "Contour"); print("aire millimes", aire(c), "| ecrite", surface_ecrite(f))
     sys.exit(0)
@@ -97,15 +195,17 @@ else:
                                            r=16, lora_alpha=16, lora_dropout=0, bias="none", random_state=3407)
 
 
-def msg(f, avec_reponse=True):
-    im = Image.open(os.path.join(BASE, f["image"])).convert("RGB")
-    m = [{"role": "user", "content": [{"type": "text", "text": question(f)}, {"type": "image", "image": im}]}]
-    if avec_reponse: m.append({"role": "assistant", "content": [{"type": "text", "text": cible(f)}]})
+def msg(f, s="tout", avec_reponse=True):
+    im = Image.open(os.path.join(BASE, f["image"])).convert("RGB"); q, c = exemple(f, s)
+    m = [{"role": "user", "content": [{"type": "text", "text": q}, {"type": "image", "image": im}]}]
+    if avec_reponse: m.append({"role": "assistant", "content": [{"type": "text", "text": c}]})
     return {"messages": m}
 
 
 if not EXAMEN_SEUL:   # 28/11 : EXAMEN_SEUL=<dossier lora> -> pas d'entrainement, examen de l'IA deja entrainee
-    data = [msg(f) for f in appr]
+    data = [msg(f, s) for s in SUJETS for f in appr if valable(f, s)]
+    random.Random(3407).shuffle(data)
+    print("exercices d'entrainement :", len(data), "| sujets :", SUJETS, flush=True)
     from unsloth.trainer import UnslothVisionDataCollator
     from trl import SFTTrainer, SFTConfig
     FastVisionModel.for_training(model)
@@ -123,42 +223,48 @@ if not EXAMEN_SEUL:   # 28/11 : EXAMEN_SEUL=<dossier lora> -> pas d'entrainement
         if "loss" in h: print("pas %s | perte %.3f | grad %s" % (h.get("step"), h["loss"], h.get("grad_norm")), flush=True)
     model.save_pretrained(os.path.join(SORTIE, "lora")); tok.save_pretrained(os.path.join(SORTIE, "lora"))
 
-# 3) examen sur le dossier jamais vu : le modele ecrit son PLAN puis sa REPONSE ; on mesure la surface de SON contour
+# 3) examen sur le dossier jamais vu, SUJET PAR SUJET (28/11) : tout / contour = surface du contour de l'IA a 1 % de
+# l'ecrit ; etiquette = a 20 millimes ; murs = F1 >= 0,8 (trait retrouve a 15 millimes) ; tri = tous les traits bien ranges.
+# EXAMEN_SUJETS=etiquette,murs,tri,contour pour noter un specialiste aussi sur les autres sujets (defaut : ses SUJETS).
 FastVisionModel.for_inference(model)
-res = []; n1 = n3 = 0
-# 28/11 : l'examen ne note QUE le contour -> on arrete d'ecrire des que la liste du contour est fermee (meme note,
-# moins de mots a generer). ARRET_CONTOUR=0 pour garder la reponse entiere.
 from transformers import StoppingCriteria, StoppingCriteriaList
 
 
-class ArretContour(StoppingCriteria):
-    def __init__(self, n0): self.n0 = n0
+class ArretListe(StoppingCriteria):
+    """arrete d'ecrire des que la liste qui suit le dernier mot attendu est fermee (meme note, moins de mots)."""
+    def __init__(self, n0, mot, apres=None): self.n0, self.mot, self.apres = n0, mot, apres
     def __call__(self, ids, scores, **kw):
         t = tok.decode(ids[0][self.n0:], skip_special_tokens=True)
-        return "REPONSE" in t and liste_apres(t.split("REPONSE")[-1], "Contour") is not None
-g_inc = open(os.path.join(SORTIE, "examen_modele.jsonl"), "w", encoding="utf-8")   # 28/11 : ecrit au fur et a mesure
-for f in exa[:N_EXA]:
-    im = Image.open(os.path.join(BASE, f["image"])).convert("RGB")
-    m = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": question(f)}]}]
-    txt = tok.apply_chat_template(m, add_generation_prompt=True)
-    x = tok(im, txt, add_special_tokens=False, return_tensors="pt").to("cuda")
-    # 28/11 : essai 30 pas -> la REPONSE tournait en boucle (« Le contour est au nu interieur des murs... » x10) ; frein leger
-    out = model.generate(**x, max_new_tokens=900, use_cache=True, do_sample=False, repetition_penalty=1.05,
-                         no_repeat_ngram_size=12,
-                         stopping_criteria=StoppingCriteriaList([ArretContour(x["input_ids"].shape[1])]) if os.environ.get("ARRET_CONTOUR", "1") == "1" else None)
-    rep = tok.decode(out[0][x["input_ids"].shape[1]:], skip_special_tokens=True)
-    plan = rep.split("REPONSE :")[0].replace("PLAN :", "").strip(); reponse = rep.split("REPONSE :")[-1].strip()
-    vrai = f.get("contour") or liste_apres(f["reponse"], "Contour"); S = surface_ecrite(f)
-    k2 = S / aire(vrai) if aire(vrai) else 0                     # m2 par millime carre (echelle de CETTE image)
-    sien = liste_apres(reponse, "Contour") or []
-    Sm = aire(sien) * k2 if len(points(sien)) >= 3 else None
-    ok1 = Sm is not None and abs(Sm / S - 1) <= 0.01; ok3 = Sm is not None and abs(Sm / S - 1) <= 0.03
-    n1 += ok1; n3 += ok3
-    res.append({"image": f["image"], "legende": f["legende"], "question": f["question"], "plan": plan, "reponse": reponse,
-                "surface_modele": Sm, "surface_ecrite": S, "juste_1pc": ok1, "juste_3pc": ok3, "v": "modele"})
-    g_inc.write(json.dumps(res[-1], ensure_ascii=False) + "\n"); g_inc.flush()
-    print("%-50s ecrite %7.2f | modele %s %s" % (f["image"][4:54], S, "%.2f" % Sm if Sm else "-", "OK" if ok1 else ("~3%" if ok3 else "")), flush=True)
-    print("   DEBUT REPONSE :", rep[:300].replace("\n", " / "), flush=True)
+        if self.apres:
+            if self.apres not in t: return False
+            t = t.split(self.apres)[-1]
+        return liste_apres(t, self.mot) is not None
+
+
+g_inc = open(os.path.join(SORTIE, "examen_modele.jsonl"), "w", encoding="utf-8")   # ecrit au fur et a mesure
+res = []; bilan = {}
+for s in os.environ.get("EXAMEN_SUJETS", ",".join(SUJETS)).split(","):
+    n_ok = 0; notes = []
+    for f in [g for g in exa if valable(g, s)][:N_EXA]:
+        im = Image.open(os.path.join(BASE, f["image"])).convert("RGB"); q, _ = exemple(f, s)
+        m = [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": q}]}]
+        txt = tok.apply_chat_template(m, add_generation_prompt=True)
+        x = tok(im, txt, add_special_tokens=False, return_tensors="pt").to("cuda")
+        arret = ArretListe(x["input_ids"].shape[1], FIN[s], "REPONSE" if s == "tout" else None)
+        out = model.generate(**x, max_new_tokens=900 if s in ("tout", "contour") else 400, use_cache=True, do_sample=False,
+                             repetition_penalty=1.05, no_repeat_ngram_size=12,
+                             stopping_criteria=StoppingCriteriaList([arret]) if os.environ.get("ARRET_CONTOUR", "1") == "1" else None)
+        rep = tok.decode(out[0][x["input_ids"].shape[1]:], skip_special_tokens=True)
+        note, juste = noter(f, s, rep); n_ok += juste; notes.append(note)
+        res.append({"sujet": s, "image": f["image"], "legende": f["legende"], "question": q, "reponse": rep,
+                    "note": note, "juste": juste, "surface_ecrite": surface_ecrite(f), "v": "modele",
+                    "plan": rep.split("REPONSE :")[0].replace("PLAN :", "").strip() if s == "tout" else "",
+                    "juste_1pc": juste if s in ("tout", "contour") else None})
+        g_inc.write(json.dumps(res[-1], ensure_ascii=False) + "\n"); g_inc.flush()
+        print("%-9s %-46s note %.2f %s | %s" % (s, f["image"][4:50], note, "JUSTE" if juste else "", rep[:160].replace("\n", " / ")), flush=True)
+    bilan[s] = {"fiches": len(notes), "justes": n_ok, "note_moyenne": round(sum(notes) / len(notes), 3) if notes else None}
+    print("EXAMEN %s dossier %s : %d fiches | justes : %d | note moyenne %s" % (s, EXA, len(notes), n_ok, bilan[s]["note_moyenne"]), flush=True)
 json.dump(res, open(os.path.join(SORTIE, "examen_modele.json"), "w", encoding="utf-8"), ensure_ascii=False)
+json.dump(bilan, open(os.path.join(SORTIE, "bilan_sujets.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 g_inc.close()
-print("EXAMEN dossier %s : %d fiches | justes a 1 %% : %d | a 3 %% : %d" % (EXA, len(exa), n1, n3), flush=True)
+print("BILAN PAR SUJET :", json.dumps(bilan, ensure_ascii=False), flush=True)
