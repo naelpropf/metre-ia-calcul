@@ -130,6 +130,8 @@ def _memo(cle, calcul):
 
 OUVERTURES = False   # 27/11 : variante v3 « ouvertures de mur » (fermer_ouvertures) ; 61 % -> 48 % des echecs = fuites
 R_OUVERTURE = 0.6    # m : ouvertures de moins de 2 x 0,6 = 1,2 m
+CALQUES = None       # 28/11 : "A" = retirer les traits des calques NON-murs (cotes, hachures, mobilier...) ; "B" = garder
+                     # seulement murs/cloisons/poteaux + enveloppe/facade. Pages sans calque mur : variante vide.
 FERMETURE = 0.0      # m ; 27/11 nuit (3068854 : FACADE VITREE ENTRE POTEAUX, le contour descend jusqu'aux vitres,
 # l'archi mesure au nu interieur des poteaux) : variante v3 qui ferme la matiere de ce rayon (pont de poteau a poteau).
 # Une piece n'est rendue que si elle est SEULE dans son trou ferme (test cause_facade.py + planche 0 fausse sur 12).
@@ -185,6 +187,13 @@ def pieces_par_matiere(chemin, seuil=0.45, ep_max=0.35, couleurs="toutes", verbe
     dy = H - OY
     conv = lambda p: (p[0] - OX, p[1] - dy)
     pl = dans_zone(pl, conv)   # 27/11 : seulement la ou il reste du travail (si metre.ZONE est defini)
+    if CALQUES:   # 28/11 : variante « calques » (calques.py) -- seulement sur les pages qui ont un calque mur/cloison
+        import calques, types
+        if not calques.page_a_calques_murs(pl.lines + pl.rects + pl.curves): return []
+        _g = (lambda o: calques.role(o.get("calque")) != "non") if CALQUES == "A" else \
+             (lambda o: calques.role(o.get("calque")) in ("mur", "enveloppe"))
+        pl = types.SimpleNamespace(lines=[o for o in pl.lines if _g(o)], rects=[o for o in pl.rects if _g(o)],
+                                   curves=[o for o in pl.curves if _g(o)])
     morceaux = []
     a_epaissir = []   # indices des traits epais (epaissis ensemble apres la boucle)
     sigs = []     # signature de chaque morceau « vrai mur » (convention de dessin) -- meme ordre que morceaux

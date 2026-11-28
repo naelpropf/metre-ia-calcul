@@ -39,7 +39,7 @@ def normaliser(chemin, num_page=0):
 import functools as _ft
 
 
-_CHAMPS = ("object_type", "pts", "linewidth", "fill", "stroke", "stroking_color", "non_stroking_color")
+_CHAMPS = ("object_type", "pts", "linewidth", "fill", "stroke", "stroking_color", "non_stroking_color", "calque")   # 28/11 : calque du dessin (calques.py)
 
 
 @_ft.lru_cache(maxsize=2)
@@ -50,7 +50,7 @@ def _page_plumber(chemin_abs, num_page, mtime):
     import pickle, types, hashlib
     dossier = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sorties", "cache_pdf")
     os.makedirs(dossier, exist_ok=True)
-    cle = hashlib.md5(("%s|%d|%d" % (chemin_abs, num_page, int(mtime))).encode()).hexdigest()[:16]
+    cle = hashlib.md5(("%s|%d|%d|calques" % (chemin_abs, num_page, int(mtime))).encode()).hexdigest()[:16]   # 28/11 : + calque
     fc = os.path.join(dossier, os.path.basename(chemin_abs)[:60] + "__" + cle + ".pkl")
     if os.path.exists(fc):
         with open(fc, "rb") as h:          # fichier ecrit par nous-memes (pas une source externe)
@@ -59,6 +59,7 @@ def _page_plumber(chemin_abs, num_page, mtime):
         import pdfplumber
         with pdfplumber.open(chemin_abs) as pdf:
             pg = pdf.pages[num_page]
+            import calques; calques.preparer(pg)   # 28/11 : nom du calque de chaque trait
             d = {k: [{c: o.get(c) for c in _CHAMPS} for o in getattr(pg, k)] for k in ("lines", "rects", "curves")}
         with open(fc, "wb") as h:
             pickle.dump(d, h, protocol=pickle.HIGHEST_PROTOCOL)

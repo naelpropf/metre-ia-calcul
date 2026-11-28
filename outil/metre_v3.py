@@ -18,7 +18,7 @@ PROCHE = 0.10   # 27/11 D-13 : releve (mesure seule) des pieces que les variante
 PARALLELE = 2   # 27/11 : variantes en parallele (machine : 2 coeurs)
 ZONE_DE_TRAVAIL = True   # 27/11 : variantes recalculees seulement autour des pieces douteuses
 CHAINE = os.environ.get("V3_CHAINE", "1") == "1"   # 27/11 D-13 : chaine de corrections cumulees v1 (V3_CHAINE=0 pour l ancienne reference)
-CANDIDATS = [0.45, 0.25, 0.13]
+CANDIDATS = [0.13]   # 28/11 : 0,45 et 0,25 retires (rejouer_variantes.py sur 7ed1699 : 0 sure en propre, passes les plus lentes)
 
 
 def echelle_par_etiquettes(chemin, min_voix=3):
@@ -149,6 +149,11 @@ def _pieces_v3(chemin):
                    ("matiere portes en pointilles", {"PORTES_POINTILLES": True}),
                    ("matiere chaine", {"SANS_COTES": True, "OUVERTURES": True, "PORTES_POINTILLES": True}),
                    ("matiere fermeture poteaux", {"FERMETURE": 1.2}),   # 27/11 nuit : chaine v2 (facade vitree)
+                   # 28/11 : CALQUES du dessin (calques.py ; declaration au journal) -- vides sur les pages sans calque mur
+                   ("matiere calques sans bruit", {"CALQUES": "A"}),
+                   ("matiere calques murs seuls", {"CALQUES": "B"}),
+                   # 28/11 : remise (temps libere par les retraits) ; v1 = +15 / 0 perdue (48705be), refusee pour le temps seul
+                   ("matiere double trait serre", {"DOUBLE_TRAIT": True, "ECART_MIN_DT": 0.01, "LONG_DT_SERRE": 0.0, "FERMETURE": 1.2}),
                    # 28/11 : « double trait serre » v1 (passe en plus) +15/0 mais 25 min et 947775 coupee ; v2 (filtre longueur) +11/0, 25 min ;
                    # v3 (A LA PLACE de fermeture poteaux) +15 gagnees / 43 PERDUES (3094167 : 19, 3068854 : 24) -> 165 sures < 193 : REFUSEE
                    ] if CHAINE else []) + [
@@ -163,7 +168,7 @@ def _pieces_v3(chemin):
                    # 27/11 : « matiere etiquette proche » ESSAYE puis retire (banc 125 -> 125, aucun gain, +temps)
                    ] + ([("matiere fiche de conventions", {"PAS_MUR": _fiche(chemin)})] if _fiche(chemin) else []) + (
                    [("matiere + murs IA", {"IA_MURS": True})] if os.environ.get("V3_IA", "1") == "1" and glob.glob(os.path.join(ici, "sorties", "objets_appr_mm*", os.path.basename(chemin)[:7] + "*")) else []) + [
-                   ("contours", {}),                                       # 26/11 contours dessines par l'archi
+                   # 28/11 : « contours » retire (rejeu 7ed1699 : 0 sure perdue sans lui ni faces 0,25/0,45)
                    ] + [("faces %.2f" % s_, {"seuil": s_}) for s_ in CANDIDATS]
         args = [(chemin, nom, p, m_force, m_pt, zone_wkb) for nom, p in taches]
         import multiprocessing as _mp
